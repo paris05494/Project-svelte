@@ -1,0 +1,107 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+@tailwind utilities;
+
+/* กำหนดตัวแปร CSS ที่กำหนดเองสำหรับสีธีม */
+:root {
+	--color-primary-green: #059669; /* Emerald 600 */
+	--color-primary-green-light: #d1fae5; /* Emerald 100 */
+	--color-secondary-purple: #7c3aed; /* Violet 600 */
+	--color-secondary-purple-light: #ede9fe; /* Violet 100 */
+	--color-neutral-white: #ffffff;
+	--color-neutral-light-gray: #f3f4f6; /* Gray 100 */
+	--color-text-dark: #1f2937; /* Gray 800 */
+	--color-text-light: #ffffff;
+	--color-slot-used: #d1fae5; /* Emerald 100 */
+	--color-slot-used-text: #065f46; /* Emerald 900 */
+	--color-slot-empty: #e5e7eb; /* Gray 200 */
+	--color-slot-empty-text: #6b7280; /* Gray 500 */
+	--color-slot-reused: #fca5a5; /* Red 300 */
+	--color-slot-reused-text: #7f1d1d; /* Red 900 */
+}
+
+body {
+	@apply bg-[var(--color-neutral-light-gray)] font-sans text-[var(--color-text-dark)];
+}
+
+/* สไตล์แผงทั่วไป */
+.panel {
+	@apply flex h-full flex-col rounded-lg bg-[var(--color-neutral-white)] p-4 shadow-md;
+}
+
+.scrollable-content {
+	@apply overflow-y-auto;
+}
+
+/* สไตล์เฉพาะ Hypertac grid */
+.hypertac-grid {
+	display: grid;
+	/* ใช้ CSS Custom Properties สำหรับจำนวนคอลัมน์และแถวแบบไดนามิก */
+	grid-template-columns: repeat(var(--hypertac-cols), minmax(0, 1fr));
+	grid-template-rows: repeat(var(--hypertac-rows), minmax(0, 1fr));
+	gap: 2px;
+	border: 1px solid #ccc;
+	padding: 5px;
+	background-color: #f0f0f0;
+	flex-grow: 1; /* อนุญาตให้ grid เติมเต็มพื้นที่ว่าง */
+}
+
+.hypertac-slot {
+	@apply flex items-center justify-center rounded-sm border p-1 font-mono text-xs;
+	aspect-ratio: 1 / 1; /* ตรวจสอบให้แน่ใจว่า slot เป็นสี่เหลี่ยมจัตุรัส */
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	background-color: var(--color-slot-empty); /* พื้นหลัง slot ว่างเริ่มต้น */
+	color: var(--color-slot-empty-text); /* ข้อความ slot ว่างเริ่มต้น */
+	border-color: #d1d5db; /* Gray 300 */
+	cursor: help; /* ระบุว่ามีข้อมูลเพิ่มเติมเมื่อวางเมาส์เหนือ */
+}
+
+.hypertac-slot.used {
+	background-color: var(--color-slot-used);
+	color: var(--color-slot-used-text);
+	border-color: var(--color-primary-green);
+}
+
+.hypertac-slot.empty {
+	background-color: var(--color-slot-empty);
+	color: var(--color-slot-empty-text);
+	border-color: #d1d5db; /* Gray 300 */
+}
+
+.hypertac-slot.reused {
+	background-color: var(--color-slot-reused);
+	color: var(--color-slot-reused-text);
+	border-color: var(--color-slot-reused-text);
+	animation: pulse-red 1.5s infinite; /* แอนิเมชันกระพริบสำหรับสัญญาณที่ใช้ซ้ำ */
+}
+
+@keyframes pulse-red {
+	0% {
+		box-shadow: 0 0 0 0 rgba(252, 165, 165, 0.7);
+	} /* Red 300 พร้อมความทึบ */
+	70% {
+		box-shadow: 0 0 0 5px rgba(252, 165, 165, 0);
+	}
+	100% {
+		box-shadow: 0 0 0 0 rgba(252, 165, 165, 0);
+	}
+}
+
+/* การปรับแต่ง Responsive */
+@media (max-width: 767px) {
+	/* สำหรับหน้าจอที่เล็กกว่า md (768px) */
+	.md\:grid {
+		display: flex; /* ซ้อนคอลัมน์ในแนวตั้ง */
+		flex-direction: column;
+	}
+	.md\:col-span-3,
+	.md\:col-span-6 {
+		width: 100%; /* ความกว้างเต็มสำหรับทุกคอลัมน์ */
+	}
+	.min-h-\[calc\(100vh-120px\)\] {
+		min-height: auto; /* ลบ min-height ที่กำหนดไว้สำหรับหน้าจอขนาดเล็ก */
+	}
+}
