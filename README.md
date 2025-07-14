@@ -33,3 +33,21 @@ workaround-demo/
 └ sql/
    ├tables/
    └triggers/
+
+restapi/
+├ docs
+│  └ [Endpoint documentation files]
+├ src
+│  ├ controller
+│  │  └ [your controller files]
+│  ├ model
+│  │  └ [your model files]
+│  └ utils
+│  ├  └ [your utility files]
+│  ├ restapi.ts / fileserver.ts
+│  └ index.ts
+├ .env
+├ package-lock.json
+├ package.json
+└ tsconfig.json
+
