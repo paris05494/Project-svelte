@@ -1,0 +1,90 @@
+restapi/
+├ docs
+│  └ [Endpoint documentation files]
+├ src
+│  ├ controller
+│  │  └ [your controller files]
+│  ├ model
+│  │  └ [your model files]
+│  └ utils
+│  ├  └ [your utility files]
+│  ├ restapi.ts / fileserver.ts
+│  └ index.ts
+├ .env
+├ package-lock.json
+├ package.json
+└ tsconfig.json
+
+controller contain your controller code.
+model contain your model releated function responsible for data manipulation.
+utils contain shared library within the project.
+restapi.ts or fileserver.ts is a file where express in initialize and exported the express application variable.
+index.ts is your point of entry of your programs. This is intended for running modulely.
+
+index.ts : 
+import restapi from "./restapi";
+restapi.listen(3000);
+
+restapi.ts : 
+import express from "express";
+import cors, { CorsOptions } from "cors";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+import HILController from "./controller/hils.controller";
+import reportController from "./controller/report.controller";
+import deviceController from "./controller/devices.controller";
+import stepController from "./controller/step.controller";
+import corsOptions from "../../shared/src/utils/cors";
+import { getDefault } from "./model/hils.model";
+
+const restapi = express();
+
+restapi.use(cors(corsOptions));
+restapi.use(express.json());
+restapi.use(express.urlencoded({ extended: true }));
+
+restapi.use(HILController);
+restapi.use(reportController);
+restapi.use(deviceController);
+restapi.use(stepController);
+
+restapi.get("/", async (_, res) => {
+    const defaultValue = await getDefault();
+
+    res.json(defaultValue).end();
+});
+
+export default restapi;
+
+package.json : 
+{
+    "name": "@workaround-demo/restapi",
+    "version": "1.0.0",
+    "main": "index.js",
+    "scripts": {
+        "compile": "tsc --build .",
+        "compile:watch": "tsc --build --watch .",
+        "dev": "nodemon ../build/restapi/src/index.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "dependencies": {
+        "cors": "^2.8.5",
+        "dotenv": "^16.5.0",
+        "exceljs": "^4.4.0",
+        "express": "^5.1.0",
+        "mysql2": "^3.14.1"
+    },
+    "devDependencies": {
+        "@types/cors": "^2.8.18",
+        "@types/express": "^5.0.2",
+        "@types/mysql": "^2.15.27",
+        "@types/node": "^22.15.30",
+        "nodemon": "^3.1.10",
+        "typescript": "^5.8.3"
+    }
+}
