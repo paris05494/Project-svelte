@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { appStore } from '../stores/app-store';
-	import type { IHypertacSlot } from '../types/hypertac';
+	import { appStore } from '../store/app-store';
+	import type { IHypertacSlot } from '../model/Hypertac';
 	import { config as backendConfig } from '../../backend_config'; // Mock config from backend
 	import { Button } from 'flowbite-svelte';
 
@@ -10,14 +10,12 @@
 	let isCollapsed: boolean = false;
 
 	$: hypertacSlots = $appStore.visualizationData?.hypertacSlots || [];
-
 	$: sortedSlots = [...hypertacSlots].sort((a, b) => {
 		if (a.row === b.row) {
 			return a.col - b.col;
 		}
 		return a.row - b.row;
 	});
-
 	function toggleCollapse() {
 		isCollapsed = !isCollapsed;
 	}
@@ -25,9 +23,7 @@
 
 <div class="panel">
 	<div class="mb-4 flex items-center justify-between">
-		<h2 class="text-lg font-semibold text-[var(--color-primary-green)]">
-			GUI จำลองการใช้ Hypertac
-		</h2>
+		<h2 class="text-2xl font-bold text-[var(--color-primary-green)]">HIL Hypertac</h2>
 		<Button
 			onclick={toggleCollapse}
 			color="light"
@@ -48,7 +44,6 @@
 				>
 					<path d="M6 9l6 6 6-6" />
 				</svg>
-				<span class="ml-1 hidden sm:inline">Expand</span>
 			{:else}
 				<!-- Inline SVG สำหรับ Chevron Up -->
 				<svg
@@ -63,11 +58,9 @@
 				>
 					<path d="M18 15l-6-6-6 6" />
 				</svg>
-				<span class="ml-1 hidden sm:inline">Collapse</span>
 			{/if}
 		</Button>
 	</div>
-
 	{#if $appStore.isLoading}
 		<div class="flex flex-grow items-center justify-center">
 			<p class="text-lg text-gray-500">Loading Hypertac data...</p>
@@ -77,7 +70,7 @@
 			<p class="text-lg text-red-600">Error loading data: {$appStore.error}</p>
 		</div>
 	{:else if isCollapsed}
-		<div class="flex flex-grow items-center justify-center text-gray-500 italic">
+		<div class="flex flex-grow items-center justify-center italic text-gray-500">
 			<p>Hypertac visualization is collapsed. Click 'Expand' to view.</p>
 		</div>
 	{:else if hypertacSlots.length > 0}
@@ -113,8 +106,5 @@
 </div>
 
 <style>
-	.hypertac-grid {
-		grid-template-columns: var(--hypertac-cols);
-		grid-template-rows: var(--hypertac-rows);
-	}
+	/* Moved grid-template-columns and grid-template-rows to app.css for consistency */
 </style>
