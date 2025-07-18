@@ -1,12 +1,60 @@
 <script lang="ts">
-  import { appStore } from '../stores/app-store';
+	import { appStore } from '../store/app-store';
+	import { Button } from 'flowbite-svelte';
+	export let isCollapsed: boolean = true; // Initial state: collapsed
+	function toggleCollapse() {
+		isCollapsed = !isCollapsed;
+	}
 </script>
 
-<div class="panel">
-  <h2 class="text-lg font-semibold mb-2 text-[var(--color-primary-green)]">Status</h2>
-  <div class="scrollable-content flex-grow bg-[var(--color-neutral-light-gray)] p-2 rounded-md border border-gray-200">
-    {#each $appStore.statusMessages as message, i (i)}
-      <p class="text-xs text-[var(--color-text-dark)] leading-tight mb-1">{message}</p>
-    {/each}
-  </div>
+<div class="panel flex flex-col">
+	<div class="mb-2 flex items-center justify-between">
+		<h2 class="text-2xl font-bold text-[var(--color-primary-green)]">Status</h2>
+		<Button
+			onclick={toggleCollapse}
+			color="light"
+			size="sm"
+			class="border border-gray-300 p-1.5 hover:bg-gray-100"
+		>
+			{#if isCollapsed}
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="h-4 w-4"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<path d="M6 9l6 6 6-6" />
+				</svg>
+			{:else}
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="h-4 w-4"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<path d="M18 15l-6-6-6 6" />
+				</svg>
+			{/if}
+		</Button>
+	</div>
+	<div
+		class="overflow-hidden transition-[max-height] duration-300 ease-in-out"
+		style="max-height: {isCollapsed ? '0' : '9999px'};"
+	>
+		<div
+			class="scrollable-content flex-grow rounded-md border border-gray-200 bg-[var(--color-neutral-light-gray)] p-2"
+		>
+			{#each $appStore.statusMessages as message, i (i)}
+				<p class="mb-1 text-xs leading-tight text-[var(--color-text-dark)]">{message}</p>
+			{/each}
+		</div>
+	</div>
 </div>
