@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import type { IHypertacVisualizationData } from '../types/hypertac';
+import type { IHypertacVisualizationData } from '../model/Hypertac';
 
 interface AppState {
     isLoading: boolean;

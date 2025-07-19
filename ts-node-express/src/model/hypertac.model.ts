@@ -15,6 +15,7 @@ export async function processExcelFile(filePath: string): Promise<IHypertacVisua
    const HYPERTAC_ROWS = backendConfig.hypertacConfig.rows;
    const HYPERTAC_COLS = backendConfig.hypertacConfig.cols;
    const TOTAL_CONCEPTUAL_SLOTS = HYPERTAC_ROWS * HYPERTAC_COLS;
+
    // Helper to get column index by header name (case-insensitive)
    const getColumnIndex = (header: string): number | undefined => {
        let colIndex: number | undefined;
@@ -26,25 +27,31 @@ export async function processExcelFile(filePath: string): Promise<IHypertacVisua
        });
        return colIndex;
    };
+
    const signalNameCol = getColumnIndex('Signalname');
    const ecuNameCol = getColumnIndex('ECU Name');
    const ecuPinCol = getColumnIndex('ECU Pin');
    const heNameCol = getColumnIndex('HE Name');
    const hePinCol = getColumnIndex('HE Pin');
+
    if (!signalNameCol || !ecuNameCol || !ecuPinCol || !heNameCol || !hePinCol) {
        throw new Error('Missing one or more required columns (Signalname, ECU Name, ECU Pin, HE Name, HE Pin) in the Excel file.');
    }
+
    // Read data from Excel
    worksheet.eachRow((row, rowNumber) => {
        if (rowNumber === 1) return; // Skip header row
+
        const signalName = row.getCell(signalNameCol!).text || null;
        const ecuName = row.getCell(ecuNameCol!).text || null;
        const ecuPin = row.getCell(ecuPinCol!).text || null;
        const heName = row.getCell(heNameCol!).text || null;
        const hePin = row.getCell(hePinCol!).text || null;
+
        if (signalName) {
            signalsFromExcel.add(signalName);
        }
+
        // Only process rows that have a HE Name and HE Pin, indicating a connection
        if (heName && hePin) {
            const physicalHypertacId = `${heName}-${hePin}`;
@@ -67,6 +74,7 @@ export async function processExcelFile(filePath: string): Promise<IHypertacVisua
                    originalRowIndex: rowNumber - 1, // 0-based index of the original Excel row
                };
                hypertacSlots.push(slot);
+
                // Track signal usage for reuse detection
                if (signalName) {
                    signalUsage[signalName] = (signalUsage[signalName] || 0) + 1;
@@ -74,6 +82,7 @@ export async function processExcelFile(filePath: string): Promise<IHypertacVisua
            }
        }
    });
+
    // Post-processing to determine `isReused` and fill empty slots
    const finalHypertacSlots: IHypertacSlot[] = [];
    const usedSignalNames = new Set<string>();
@@ -87,6 +96,7 @@ export async function processExcelFile(filePath: string): Promise<IHypertacVisua
        }
        finalHypertacSlots.push(slot);
    });
+
    // Fill remaining conceptual slots as empty
    for (let i = finalHypertacSlots.length; i < TOTAL_CONCEPTUAL_SLOTS; i++) {
        const row = Math.floor(i / HYPERTAC_COLS) + 1;
@@ -103,10 +113,12 @@ export async function processExcelFile(filePath: string): Promise<IHypertacVisua
            isReused: false,
        });
    }
+
    // Calculate counts
    const signalsUsedCount = usedSignalNames.size;
    const signalsNotUsedCount = signalsFromExcel.size - signalsUsedCount;
-   const hypertacEmptySlotsCount = TOTAL_CONCEPTUAL_SLOTS - hypertacSlots.length;
+   const hypertacEmptySlotsCount = TOTAL_CONCEPTUAL_SLOTS - hypertacSlots.length; // This should be total conceptual - *used* slots, not finalHypertacSlots.length (which includes empty ones)
+
    return {
        hypertacSlots: finalHypertacSlots,
        signalsUsedCount: signalsUsedCount,

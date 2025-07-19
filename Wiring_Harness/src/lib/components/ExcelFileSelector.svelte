@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import { appStore } from '../store/app-store';
-	import { apiService } from '../service/api.service';
+	import { appStore } from '../stores/app-store';
+	import { apiService } from '../services/api.service';
 	import { Button } from 'flowbite-svelte';
 	import { getUniqueNewFiles } from '../utils/file-helpers';
 

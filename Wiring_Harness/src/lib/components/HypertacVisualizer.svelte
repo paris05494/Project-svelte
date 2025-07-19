@@ -1,87 +1,72 @@
 <script lang="ts">
-	import { appStore } from '../store/app-store';
+	import { appStore } from '../stores/app-store';
 	import type { IHypertacSlot } from '../model/Hypertac';
-	import { config as backendConfig } from '../../backend_config'; // Mock config from backend
-	import { Button } from 'flowbite-svelte';
+	import { config as backendConfig } from '../../backend_config';
+
+	export let isMainView: boolean; // Prop to differentiate main view from modal view
 
 	const HYPERTAC_ROWS = backendConfig.hypertacConfig.rows;
 	const HYPERTAC_COLS = backendConfig.hypertacConfig.cols;
+	const TOTAL_CONCEPTUAL_SLOTS = HYPERTAC_ROWS * HYPERTAC_COLS;
 
-	let isCollapsed: boolean = false;
-
-	$: hypertacSlots = $appStore.visualizationData?.hypertacSlots || [];
-	$: sortedSlots = [...hypertacSlots].sort((a, b) => {
-		if (a.row === b.row) {
-			return a.col - b.col;
+	// Derived state for the slots to display
+	$: displaySlots = (() => {
+		if ($appStore.visualizationData?.hypertacSlots.length) {
+			// If data is loaded, use the actual slots and sort them
+			return [...$appStore.visualizationData.hypertacSlots].sort((a, b) => {
+				if (a.row === b.row) {
+					return a.col - b.col;
+				}
+				return a.row - b.row;
+			});
+		} else {
+			// If no data, generate empty conceptual slots
+			const emptySlots: IHypertacSlot[] = [];
+			for (let i = 0; i < TOTAL_CONCEPTUAL_SLOTS; i++) {
+				const row = Math.floor(i / HYPERTAC_COLS) + 1;
+				const col = (i % HYPERTAC_COLS) + 1;
+				emptySlots.push({
+					id: `R${row}C${col}`,
+					row: row,
+					col: col,
+					isUsed: false,
+					signalName: null,
+					ecuName: null,
+					ecuPin: null,
+					physicalHypertacId: null,
+					isReused: false
+				});
+			}
+			return emptySlots;
 		}
-		return a.row - b.row;
-	});
-	function toggleCollapse() {
-		isCollapsed = !isCollapsed;
-	}
+	})();
 </script>
 
-<div class="panel">
+<div class="panel flex flex-col {isMainView ? '' : 'h-full'}">
 	<div class="mb-4 flex items-center justify-between">
 		<h2 class="text-2xl font-bold text-[var(--color-primary-green)]">HIL Hypertac</h2>
-		<Button
-			onclick={toggleCollapse}
-			color="light"
-			size="sm"
-			class="border border-gray-300 p-1.5 hover:bg-gray-100"
-		>
-			{#if isCollapsed}
-				<!-- Inline SVG สำหรับ Chevron Down -->
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="h-4 w-4"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-				>
-					<path d="M6 9l6 6 6-6" />
-				</svg>
-			{:else}
-				<!-- Inline SVG สำหรับ Chevron Up -->
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="h-4 w-4"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-				>
-					<path d="M18 15l-6-6-6 6" />
-				</svg>
-			{/if}
-		</Button>
+		<!-- The "Open Full-Screen View" button is now in +page.svelte -->
 	</div>
+
 	{#if $appStore.isLoading}
 		<div class="flex flex-grow items-center justify-center">
 			<p class="text-lg text-gray-500">Loading Hypertac data...</p>
 		</div>
-	{:else if $appStore.error}
+	{:else if $appStore.error && isMainView}
 		<div class="flex flex-grow items-center justify-center">
 			<p class="text-lg text-red-600">Error loading data: {$appStore.error}</p>
 		</div>
-	{:else if isCollapsed}
-		<div class="flex flex-grow items-center justify-center italic text-gray-500">
-			<p>Hypertac visualization is collapsed. Click 'Expand' to view.</p>
-		</div>
-	{:else if hypertacSlots.length > 0}
+	{:else}
 		<div class="flex-grow overflow-auto p-2">
 			<div
-				class="hypertac-grid h-full w-full"
+				class="hypertac-grid h-full w-full {isMainView ? '' : 'modal-view'}"
 				style="--hypertac-rows: {HYPERTAC_ROWS}; --hypertac-cols: {HYPERTAC_COLS};"
 			>
-				{#each sortedSlots as slot (slot.id)}
+				{#each displaySlots as slot (slot.id)}
 					<div
-						class="hypertac-slot {slot.isUsed ? 'used' : 'empty'} {slot.isReused ? 'reused' : ''}"
+						class="hypertac-slot {slot.isUsed ? 'used' : 'empty'} {slot.isReused
+							? 'reused'
+							: ''} {isMainView ? '' : 'modal-view'}"
 						title={slot.signalName
 							? `Signal: ${slot.signalName}\nECU: ${slot.ecuName}${slot.ecuPin ? ` (Pin: ${slot.ecuPin})` : ''}\nHypertac Slot: ${slot.id}${slot.physicalHypertacId ? ` (Physical: ${slot.physicalHypertacId})` : ''}\n${slot.isReused ? ' (REUSED)' : ''}`
 							: `Empty Slot: ${slot.id}`}
@@ -91,20 +76,20 @@
 							{#if slot.isReused}
 								<span class="ml-1 text-[var(--color-slot-reused-text)]"> (R)</span>
 							{/if}
-						{:else}
-							<span class="text-[var(--color-slot-empty-text)] opacity-75">{slot.id}</span>
 						{/if}
+						<!-- Empty slots will just be circles without text -->
 					</div>
 				{/each}
 			</div>
-		</div>
-	{:else}
-		<div class="flex flex-grow items-center justify-center">
-			<p class="text-lg text-gray-500">Upload an Excel file to visualize Hypertac data.</p>
 		</div>
 	{/if}
 </div>
 
 <style>
-	/* Moved grid-template-columns and grid-template-rows to app.css for consistency */
+	/* Styles are mostly handled by app.css */
+	.panel {
+		display: flex;
+		flex-direction: column;
+		height: 100%; /* Important for proper flex-grow behavior */
+	}
 </style>

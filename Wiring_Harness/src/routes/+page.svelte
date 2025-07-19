@@ -1,29 +1,55 @@
 <script lang="ts">
-	import StatusPanel from '$lib/hypertac/StatusPanel.svelte';
-	import ExcelFileSelector from '$lib/hypertac/ExcelFileSelector.svelte';
-	import HypertacVisualizer from '$lib/hypertac/HypertacVisualizer.svelte';
-	import SignalInfoPanel from '$lib/hypertac/SignalInfoPanel.svelte';
-	import { appStore } from '$lib/store/app-store';
+	import StatusPanel from '$lib/components/StatusPanel.svelte';
+	import ExcelFileSelector from '$lib/components/ExcelFileSelector.svelte';
+	import HypertacVisualizer from '$lib/components/HypertacVisualizer.svelte';
+	import SignalInfoPanel from '$lib/components/SignalInfoPanel.svelte';
+	import HypertacModal from '$lib/components/Modal/HypertacModal.svelte'; // Import the new custom modal component
+	import { appStore } from '$lib/stores/app-store';
 	import { Button } from 'flowbite-svelte';
 
-	let statusPanelCollapsed: boolean = true; // State for Status Panel collapse
-	let showHypertacModal: boolean = false; // State for Hypertac Modal visibility
-	function openHypertacModal() {
+	let statusPanelCollapsed: boolean = true;
+	let showHypertacFullScreen: boolean = false;
+
+	// Control body overflow when modal is open
+	$: {
+		if (typeof document !== 'undefined') {
+			// Ensure running in browser environment
+			if (showHypertacFullScreen) {
+				document.body.style.overflow = 'hidden';
+			} else {
+				document.body.style.overflow = ''; // Reset to default
+			}
+		}
+	}
+
+	function openFullScreenHypertacView() {
 		if ($appStore.visualizationData?.hypertacSlots.length) {
-			showHypertacModal = true;
+			showHypertacFullScreen = true;
+			appStore.setError(null);
+			console.log(
+				'Attempting to open full screen modal. showHypertacFullScreen:',
+				showHypertacFullScreen
+			);
 		} else {
 			appStore.setError(
-				'Upload the Excel file and display the Hypertac data before opening the full-screen display mode.'
+				'Upload an Excel file and visualize the Hypertac data before opening the full-screen display mode.'
 			);
+			console.log('Cannot open full screen modal: No data to visualize.');
 		}
+	}
+
+	function closeFullScreenHypertacView() {
+		showHypertacFullScreen = false;
+		console.log('Closing full screen modal. showHypertacFullScreen:', showHypertacFullScreen);
 	}
 </script>
 
 <div class="flex min-h-[calc(100vh-120px)] flex-col p-2 md:grid md:grid-cols-12 md:gap-2">
+	<!-- Left Column: Status Panel & Excel File Selector -->
 	<div class="mb-4 flex h-full flex-col gap-2 md:col-span-3 md:mb-0">
 		<div
 			class="flex flex-col transition-all duration-700 ease-in-out
-			   {statusPanelCollapsed ? 'h-auto min-h-[5rem]' : 'h-1/3 min-h-[150px]'}"
+                {statusPanelCollapsed ? 'h-auto min-h-[5rem]' : 'h-1/3 min-h-[150px]'}"
 		>
 			<StatusPanel bind:isCollapsed={statusPanelCollapsed} />
 		</div>
@@ -31,28 +57,37 @@
 			<ExcelFileSelector />
 		</div>
 	</div>
-	<div class="mb-4 flex flex-col items-center justify-center md:col-span-9 md:mb-0">
-		<div class="panel flex h-full w-full flex-col items-center justify-center p-4">
-			<h2 class="mb-4 text-xl font-semibold text-[var(--color-primary-green)]">
-				Hypertac Visualization
-			</h2>
-			<Button
-				onclick={openHypertacModal}
-				disabled={!$appStore.visualizationData?.hypertacSlots.length || $appStore.isLoading}
-				class="bg-[var(--color-primary-green)] text-[var(--color-text-light)] hover:bg-emerald-700"
-			>
-				Open Full-Screen Hypertac View
-				{#if $appStore.visualizationData?.hypertacSlots.length}
-					<span class="ml-2 text-sm">({$appStore.currentFileName})</span>
-				{/if}
-			</Button>
-			{#if $appStore.error}
-				<p class="mt-4 text-sm text-red-600">Error: {$appStore.error}</p>
-			{/if}
+
+	<!-- Middle Column: Hypertac Visualizer (main view) and its button -->
+	<div class="mb-4 flex flex-col md:col-span-6 md:mb-0">
+		<div class="panel flex h-full flex-col">
+			<div class="mb-4 flex items-center justify-between">
+				<h2 class="text-2xl font-bold text-[var(--color-primary-green)]">HIL Hypertac</h2>
+				<Button
+					onclick={openFullScreenHypertacView}
+					disabled={!$appStore.visualizationData?.hypertacSlots.length || $appStore.isLoading}
+					class="bg-[var(--color-primary-green)] text-[var(--color-text-light)] hover:bg-emerald-700"
+					size="sm"
+				>
+					Open Full-Screen View
+				</Button>
+			</div>
+			<!-- Main Hypertac Visualizer instance -->
+			<div class="flex-grow">
+				<HypertacVisualizer isMainView={true} />
+			</div>
 		</div>
+		{#if $appStore.error && !showHypertacFullScreen}
+			<p class="mt-4 text-center text-sm text-red-600">Error: {$appStore.error}</p>
+		{/if}
 	</div>
+
+	<!-- Right Column: Signal Info Panel -->
 	<div class="md:col-span-3">
 		<SignalInfoPanel />
 	</div>
 </div>
-<HypertacVisualizer bind:showModal={showHypertacModal} />
+
+<!-- Use the new custom HypertacModal component -->
+<!-- This component is positioned at the root of the page, ensuring it can overlay everything -->
+<HypertacModal showModal={showHypertacFullScreen} onClose={closeFullScreenHypertacView} />

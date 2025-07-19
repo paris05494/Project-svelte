@@ -1,5 +1,5 @@
 import { appStore } from '../stores/app-store';
-import type { IHypertacVisualizationData } from '../types/hypertac';
+import type { IHypertacVisualizationData } from '../model/Hypertac';
 
 const API_BASE_URL = 'http://localhost:5000/api/v1'; // Base URL สำหรับ backend API ของคุณ
 

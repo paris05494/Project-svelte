@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { appStore } from '../store/app-store';
+	import { appStore } from '../stores/app-store';
 	import { getUniqueSignalEcuConnections } from '../utils/signal-helpers';
 	$: uniqueConnections = $appStore.visualizationData
 		? getUniqueSignalEcuConnections($appStore.visualizationData.hypertacSlots)

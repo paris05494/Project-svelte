@@ -1,4 +1,4 @@
-import type { IHypertacSlot } from '../types/hypertac';
+import type { IHypertacSlot } from '../model/Hypertac';
 
 /**
  * ดึงการเชื่อมต่อ Signal-to-ECU ที่ไม่ซ้ำกันจากรายการ Hypertac slots

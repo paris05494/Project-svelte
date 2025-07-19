@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { appStore } from '../store/app-store';
+	import { appStore } from '../stores/app-store';
 	import { Button } from 'flowbite-svelte';
 	export let isCollapsed: boolean = true; // Initial state: collapsed
 	function toggleCollapse() {
