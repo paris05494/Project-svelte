@@ -1,7 +1,10 @@
 <script lang="ts">
 	import { appStore } from '../stores/app-store';
+
 	import { Button } from 'flowbite-svelte';
+
 	export let isCollapsed: boolean = true; // Initial state: collapsed
+
 	function toggleCollapse() {
 		isCollapsed = !isCollapsed;
 	}
@@ -10,6 +13,7 @@
 <div class="panel flex flex-col">
 	<div class="mb-2 flex items-center justify-between">
 		<h2 class="text-2xl font-bold text-[var(--color-primary-green)]">Status</h2>
+
 		<Button
 			onclick={toggleCollapse}
 			color="light"
