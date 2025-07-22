@@ -18,7 +18,7 @@
 			></span> (Status)
 		</p>
 		<p class="text-sm">
-			Signals Not Used (from Excel): <span class="font-bold text-[var(--color-text-dark)]"
+			Signals Not Used: <span class="font-bold text-[var(--color-text-dark)]"
 				>{$appStore.visualizationData?.signalsNotUsedCount || 0}</span
 			>
 			<span
