@@ -50,14 +50,15 @@
 		</Button>
 	</div>
 	<div
-		class="overflow-hidden transition-[max-height] duration-300 ease-in-out"
+		class="scrollable-content overflow-hidden transition-[max-height] duration-500 ease-in-out"
 		style="max-height: {isCollapsed ? '0' : '9999px'};"
 	>
 		<div
-			class="scrollable-content flex-grow rounded-md border border-gray-200 bg-[var(--color-neutral-light-gray)] p-2"
+			class="flex-grow rounded-md border border-gray-200 bg-[var(--color-neutral-light-gray)] p-3"
 		>
 			{#each $appStore.statusMessages as message, i (i)}
 				<p class="mb-1 text-xs leading-tight text-[var(--color-text-dark)]">{message}</p>
+				<hr class="h-px my-3 bg-gray-300 border-0"/>
 			{/each}
 		</div>
 	</div>
