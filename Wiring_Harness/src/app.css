@@ -4,157 +4,170 @@
 @tailwind utilities;
 
 :root {
-	--color-primary-green: #428003;
-	--color-primary-green-light: #d1fae5;
-	--color-secondary-purple: #622ad8;
-	--color-secondary-purple-light: #ede9fe;
-	--color-neutral-white: #ffffff;
-	--color-neutral-light-gray: #f3f4f6;
-	--color-text-dark: #1f2937;
-	--color-text-light: #ffffff;
-	--color-slot-used: #d1fae5;
-	--color-slot-used-text: #065f46;
-	--color-slot-empty: #e5e7eb;
-	--color-slot-empty-text: #6b7280;
-	--color-slot-reused: #fca5a5;
-	--color-slot-reused-text: #7f1d1d;
+    --color-primary-green: #428003;
+    --color-primary-green-light: #d1fae5;
+    --color-secondary-purple: #622ad8;
+    --color-secondary-purple-light: #ede9fe;
+    --color-neutral-white: #ffffff;
+    --color-neutral-light-gray: #f3f4f6;
+    --color-text-dark: #1f2937;
+    --color-text-light: #ffffff;
+    --color-slot-used: #d1fae5;
+    --color-slot-used-text: #065f46;
+    --color-slot-empty: #e5e7eb;
+    --color-slot-empty-text: #6b7280;
+    --color-slot-reused: #fca5a5;
+    --color-slot-reused-text: #7f1d1d;
 }
 
 body {
-	@apply bg-[var(--color-neutral-light-gray)] text-[var(--color-text-dark)];
+    @apply bg-[var(--color-neutral-light-gray)] text-[var(--color-text-dark)];
 }
 
 .panel {
-	background-color: var(--color-neutral-white);
-	border-radius: 0.2rem;
-	box-shadow:
-		0 4px 6px -1px rgb(0 0 0 / 0.1),
-		0 2px 4px -2px rgb(0 0 0 / 0.1);
-	padding: 1rem;
-	height: 100%;
-	display: flex;
-	flex-direction: column;
+    background-color: var(--color-neutral-white);
+    border-radius: 0.2rem;
+    box-shadow:
+        0 4px 6px -1px rgb(0 0 0 / 0.1),
+        0 2px 4px -2px rgb(0 0 0 / 0.1);
+    padding: 1rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .scrollable-content {
-	overflow-y: auto;
-	/* Hide scrollbar */
-	&::-webkit-scrollbar {
-		display: none;
-	}
-	-ms-overflow-style: none;
-	scrollbar-width: none;
+    overflow-y: auto;
 }
 
 /* Hypertac grid - Default (for main view) */
 .hypertac-grid {
-	display: grid;
-	grid-template-columns: repeat(var(--hypertac-cols), minmax(0, 1fr));
-	grid-template-rows: repeat(var(--hypertac-rows), minmax(0, 1fr));
-	gap: 0.25rem; /* Reverted to original smaller gap for main view */
-	height: 100%;
-	max-height: 100%;
-	overflow-y: auto;
-	padding-right: 0.5rem;
-	&::-webkit-scrollbar {
-		width: 8px;
-	}
-	&::-webkit-scrollbar-track {
-		background: #f1f1f1;
-		border-radius: 4px;
-	}
-	&::-webkit-scrollbar-thumb {
-		background: #888;
-		border-radius: 4px;
-	}
-	&::-webkit-scrollbar-thumb:hover {
-		background: #555;
-	}
+    display: grid;
+    grid-template-columns: repeat(var(--hypertac-cols), minmax(0, 1fr));
+    grid-template-rows: repeat(var(--hypertac-rows), minmax(0, 1fr));
+    gap: 0.25rem;
+    /* Reverted to original smaller gap for main view */
+    height: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
 }
 
 /* Hypertac slot - Default (for main view) */
 .hypertac-slot {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	border: 1px solid var(--color-slot-empty);
-	border-radius: 9999px; /* Makes it a circle */
-	aspect-ratio: 1 / 1; /* Ensures it's a perfect circle */
-	font-size: 0.65rem; /* Reverted to original font size for main view */
-	font-weight: 500;
-	text-align: center;
-	cursor: default;
-	padding: 0.1rem; /* Reverted to original padding for main view */
-	transition:
-		background-color 0.2s ease,
-		border-color 0.2s ease;
-	box-sizing: border-box;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	/* Removed explicit min/max width/height for default view to let grid handle it */
-	margin: auto; /* Keep auto margin to center within cell */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-slot-empty);
+    border-radius: 9999px;
+    /* Makes it a circle */
+    aspect-ratio: 1 / 1;
+    /* Ensures it's a perfect circle */
+    font-size: 0.65rem;
+    /* Reverted to original font size for main view */
+    font-weight: 500;
+    text-align: center;
+    cursor: default;
+    padding: 0.1rem;
+    /* Reverted to original padding for main view */
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Removed explicit min/max width/height for default view to let grid handle it */
+    margin: auto;
+    /* Keep auto margin to center within cell */
 }
 
 .hypertac-slot.used {
-	background-color: var(--color-slot-used);
-	border-color: var(--color-primary-green);
-	color: var(--color-slot-used-text);
+    background-color: var(--color-slot-used);
+    border-color: var(--color-primary-green);
+    color: var(--color-slot-used-text);
 }
+
 .hypertac-slot.empty {
-	background-color: var(--color-slot-empty);
-	border-color: var(--color-slot-empty);
-	color: var(--color-slot-empty-text);
+    background-color: var(--color-slot-empty);
+    border-color: var(--color-slot-empty);
+    color: var(--color-slot-empty-text);
 }
+
 .hypertac-slot.reused {
-	background-color: var(--color-slot-reused);
-	border-color: var(--color-slot-reused-text);
-	color: var(--color-slot-reused-text);
-	animation: pulse-red 1.5s infinite;
+    background-color: var(--color-slot-reused);
+    border-color: var(--color-slot-reused-text);
+    color: var(--color-slot-reused-text);
+    animation: pulse-red 1.5s infinite;
 }
 
 /* --- Styles specifically for Hypertac in Modal View --- */
 /* (ต้องมีทั้ง class hypertac-grid และ modal-view จึงจะใช้ style นี้) */
 .hypertac-grid.modal-view {
-	gap: 1rem; /* Increased gap for modal view, both horizontal and vertical */
+    gap: 1rem;
+    /* Increased gap for modal view, both horizontal and vertical */
 }
 
 /* (ต้องมีทั้ง class hypertac-slot และ modal-view จึงจะใช้ style นี้) */
 .hypertac-slot.modal-view {
-	font-size: 0.4rem; /* Even smaller font for modal view */
-	padding: 0.05rem; /* Reduced padding for modal view */
-	min-width: 15px; /* Smaller min width for modal circles */
-	min-height: 15px; /* Smaller min height for modal circles */
-	max-width: 30px; /* Smaller max width for modal circles */
-	max-height: 30px; /* Smaller max height for modal circles */
+    font-size: 0.4rem;
+    /* Even smaller font for modal view */
+    padding: 0.05rem;
+    /* Reduced padding for modal view */
+    min-width: 15px;
+    /* Smaller min width for modal circles */
+    min-height: 15px;
+    /* Smaller min height for modal circles */
+    max-width: 30px;
+    /* Smaller max width for modal circles */
+    max-height: 30px;
+    /* Smaller max height for modal circles */
 }
 
 @keyframes pulse-red {
-	0% {
-		box-shadow: 0 0 0 0 rgba(252, 165, 165, 0.7);
-	}
+    0% {
+        box-shadow: 0 0 0 0 rgba(252, 165, 165, 0.7);
+    }
 
-	70% {
-		box-shadow: 0 0 0 5px rgba(252, 165, 165, 0);
-	}
+    70% {
+        box-shadow: 0 0 0 5px rgba(252, 165, 165, 0);
+    }
 
-	100% {
-		box-shadow: 0 0 0 0 rgba(252, 165, 165, 0);
-	}
+    100% {
+        box-shadow: 0 0 0 0 rgba(252, 165, 165, 0);
+    }
 }
 
 /* Responsive */
 @media (max-width: 767px) {
-	.md\:grid {
-		display: flex;
-		flex-direction: column;
-	}
+    .md\:grid {
+        display: flex;
+        flex-direction: column;
+    }
 
-	.md\:col-span-3,
-	.md\:col-span-6 {
-		width: 100%;
-	}
+    .md\:col-span-3,
+    .md\:col-span-6 {
+        width: 100%;
+    }
 
-	.min-h-\[calc\(100vh-120px\)\] {
-		min-height: auto;
-	}
+    .min-h-\[calc\(100vh-120px\)\] {
+        min-height: auto;
+    }
 }
