@@ -1,60 +1,85 @@
 <script lang="ts">
-	import HypertacVisualizer from '../HypertacVisualizer.svelte';
-	import { Button } from 'flowbite-svelte';
-
+	import { createEventDispatcher } from 'svelte';
+	import { appStore } from '$lib/stores/app-store';
 	export let showModal: boolean;
 	export let onClose: () => void;
-
-	// Function to handle clicks outside the modal content
+	const dispatch = createEventDispatcher();
 	function handleClickOutside(event: MouseEvent) {
-		if (event.target === event.currentTarget) {
+		const modalContent = document.querySelector('.modal-content');
+		if (modalContent && !modalContent.contains(event.target as Node)) {
 			onClose();
 		}
 	}
-
+	// Control body overflow when modal is open
+	$: {
+		if (typeof document !== 'undefined') {
+			if (showModal) {
+				document.body.style.overflow = 'hidden';
+			} else {
+				document.body.style.overflow = '';
+			}
+		}
+	}
 </script>
 
 {#if showModal}
-	<div
-		class="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900 bg-opacity-90 p-4"
-		on:click={handleClickOutside}
-		on:keydown={(e) => {
-			if (e.key === 'Escape') onClose();
-		}}
-		role="dialog"
-		aria-modal="true"
-		tabindex="-1"
-	>
-		<div
-			class="modal-content relative flex h-full max-h-[90vh] w-full max-w-7xl flex-col overflow-hidden rounded-lg bg-white shadow-xl"
-		>
-			<div class="flex flex-shrink-0 items-center justify-between border-b border-gray-200 p-4">
-				<h2 class="text-2xl font-bold text-[var(--color-primary-green)]">
-					Full-Screen HIL Hypertac View
-				</h2>
-				<Button color="light" size="sm" onclick={onClose} class="p-1.5 hover:bg-gray-100">
+	<div class="modal-overlay" on:click={handleClickOutside}>
+		<div class="modal-content panel flex flex-col">
+			<div class="mb-4 flex items-center justify-between">
+				<h3 class="text-2xl font-bold text-[var(--color-primary-green)]">
+					Full-Screen Hypertac View
+				</h3>
+				<button on:click={onClose} class="text-gray-500 hover:text-gray-700" aria-label="Close modal">
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
-						class="h-5 w-5"
-						viewBox="0 0 24 24"
+						class="h-6 w-6"
 						fill="none"
+						viewBox="0 0 24 24"
 						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
 					>
-						<line x1="18" y1="6" x2="6" y2="18"></line>
-						<line x1="6" y1="6" x2="18" y2="18"></line>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M6 18L18 6M6 6l12 12"
+						/>
 					</svg>
-				</Button>
+				</button>
 			</div>
-			<div class="flex-grow overflow-auto p-4">
-				<HypertacVisualizer isMainView={false} />
+			<div class="custom-scrollbar flex-grow overflow-y-auto">
+				<slot />
 			</div>
+			{#if $appStore.isLoading}
+				<p class="mt-2 text-center text-sm text-gray-500">Loading...</p>
+			{/if}
+			{#if $appStore.error}
+				<p class="mt-2 text-sm text-red-600">Error: {$appStore.error}</p>
+			{/if}
 		</div>
 	</div>
 {/if}
 
 <style>
-
+	.modal-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(0, 0, 0, 0.7);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 1000;
+	}
+	.modal-content {
+		background-color: var(--color-neutral-white);
+		border-radius: 0.5rem;
+		padding: 1.5rem;
+		box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+		max-width: 90%;
+		max-height: 90%;
+		width: auto;
+		height: auto;
+	}
 </style>
