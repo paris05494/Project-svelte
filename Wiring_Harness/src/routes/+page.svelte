@@ -62,12 +62,14 @@
 					<img src={expandLogo} alt="Expand Logo" class="h-5 w-5" />
 				</Button>
 			</div>
-			<div class="scrollable-content relative flex-grow overflow-y-auto" style="min-height: 200px;">
-				<HypertacVisualizer isMainView={true} />
+			<div class="custom-scrollbar relative flex-grow overflow-y-auto">
+				<HypertacVisualizer visualizationData={$appStore.visualizationData} isMainView={true} />
 			</div>
 		</div>
 		<div class="flex flex-grow-[1] flex-col"><SignalInfoPanel /></div>
 	</div>
 </div>
 
-<HypertacModal showModal={showHypertacFullScreen} onClose={closeFullScreenHypertacView} />
+<HypertacModal showModal={showHypertacFullScreen} onClose={closeFullScreenHypertacView}>
+	<HypertacVisualizer visualizationData={$appStore.visualizationData} isMainView={false} />
+</HypertacModal>
