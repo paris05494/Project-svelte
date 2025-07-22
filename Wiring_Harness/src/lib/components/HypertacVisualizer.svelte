@@ -1,42 +1,37 @@
 <script lang="ts">
 	import { appStore } from '../stores/app-store';
-	import type { IHypertacSlot } from '../model/Hypertac';
-	import { config as backendConfig } from '../../backend_config'; // Ensure this path is correct
-	export let isMainView: boolean; // Prop to differentiate main view from modal view
+	import type { IHypertacSlot, IHypertacVisualizationData } from '../model/Hypertac';
+	import { config as backendConfig } from '../../backend_config';
+	export let isMainView: boolean;
 	$: isModalView = !isMainView;
-
 	const MAIN_VIEW_COLS = backendConfig.hypertacConfig.cols;
 	const MODAL_VIEW_COLS = 10;
 	$: HYPERTAC_COLS = isModalView ? MODAL_VIEW_COLS : MAIN_VIEW_COLS;
-
+	export let visualizationData: IHypertacVisualizationData | null;
 	$: displaySlots = (() => {
 		const allSlots: IHypertacSlot[] = [];
-		const dataSlots = $appStore.visualizationData?.hypertacSlots || [];
+		const dataSlots = visualizationData?.hypertacSlots || [];
 		const existingSlotMap = new Map<string, IHypertacSlot>();
-
 		for (const slot of dataSlots) {
 			existingSlotMap.set(`R${slot.row}C${slot.col}`, slot);
 		}
-
 		let currentMaxRow = 0;
 		if (dataSlots.length > 0) {
 			currentMaxRow = dataSlots.reduce((max, s) => Math.max(max, s.row), 0);
 		}
-
+		const neededRowsForData =
+			dataSlots.length > 0 ? Math.ceil(dataSlots.length / HYPERTAC_COLS) : 0;
 		let effectiveRows = 0;
 		if (isModalView) {
-
-			effectiveRows = 18;
+			effectiveRows = 18; // Fixed rows for modal to ensure density
 		} else {
-
-			effectiveRows = Math.max(backendConfig.hypertacConfig.rows, currentMaxRow);
-
-			if (dataSlots.length === 0) {
-				effectiveRows = backendConfig.hypertacConfig.rows;
-			}
+			// For Main View, use a base from backend config or currentMaxRow, ensuring it allows content to overflow for scroll
+			// The height of the Hypertac container in +page.svelte will determine when scroll kicks in.
+			// Here, we just ensure enough rows are *generated* to contain all data.
+			effectiveRows = Math.max(backendConfig.hypertacConfig.rows, neededRowsForData, 5); // Ensure at least 5 rows for visibility, and enough for data
 		}
-
-		effectiveRows = Math.max(effectiveRows, 5);
+		// Ensure minimum 5 rows for Main View, and 18 for Modal View, to always have some grid space
+		effectiveRows = Math.max(effectiveRows, isModalView ? 18 : 5);
 		for (let r = 1; r <= effectiveRows; r++) {
 			for (let c = 1; c <= HYPERTAC_COLS; c++) {
 				const id = `R${r}C${c}`;
@@ -65,24 +60,21 @@
 			return a.row - b.row;
 		});
 	})();
+	// HYPERTAC_ROWS ต้องถูกคำนวณจากจำนวนช่องทั้งหมดหารด้วยจำนวนคอลัมน์ เพื่อให้ Grid มีแถวพอดี
 	$: HYPERTAC_ROWS = Math.ceil(displaySlots.length / HYPERTAC_COLS);
 </script>
 
-<div class="flex h-full flex-col">
+<div class="h-full w-full">
 	{#if $appStore.isLoading}
-		<div class="flex flex-grow items-center justify-center">
+		<div class="flex h-full w-full items-center justify-center">
 			<p class="text-lg text-gray-500">Loading Hypertac data...</p>
 		</div>
 	{:else if $appStore.error && isMainView}
-		<div class="flex flex-grow items-center justify-center">
+		<div class="flex h-full w-full items-center justify-center">
 			<p class="text-lg text-red-600">Error: {$appStore.error}</p>
 		</div>
 	{:else}
-		<div
-			class="flex-grow p-2 {isMainView || isModalView
-				? 'custom-scrollbar overflow-y-auto'
-				: 'overflow-hidden'}"
-		>
+		<div class="h-full w-full p-2">
 			<div
 				class="hypertac-grid w-full {isModalView ? 'modal-grid-view' : 'main-grid-view'}"
 				style="--hypertac-rows: {HYPERTAC_ROWS}; --hypertac-cols: {HYPERTAC_COLS};"
@@ -112,6 +104,7 @@
 </div>
 
 <style>
+	/* Custom scrollbar styles (ยังคงอยู่ตรงนี้ เพื่อให้ parent สามารถเรียกใช้ class ได้) */
 	.custom-scrollbar::-webkit-scrollbar {
 		width: 8px;
 	}
@@ -130,9 +123,9 @@
 	.hypertac-grid {
 		display: grid;
 		width: 100%;
-		height: 100%; /* Ensures the grid tries to fill its container */
+		height: auto; /* Allow grid to determine its own height based on content */
 		grid-template-columns: repeat(var(--hypertac-cols), minmax(0, 1fr));
-		grid-template-rows: repeat(var(--hypertac-rows), minmax(0, 1fr)); /* Use explicit rows */
+		grid-template-rows: repeat(var(--hypertac-rows), auto); /* Each row takes content height */
 		gap: 0.2rem; /* Default small gap */
 	}
 	/* Base styles for individual slots */
@@ -141,8 +134,8 @@
 		align-items: center;
 		justify-content: center;
 		border: 1px solid var(--color-slot-empty);
-		border-radius: 9999px; /* Makes it a perfect circle */
-		aspect-ratio: 1 / 1; /* Ensures it's a perfect circle */
+		border-radius: 9999px;
+		aspect-ratio: 1 / 1;
 		font-weight: 500;
 		text-align: center;
 		cursor: default;
@@ -150,38 +143,38 @@
 			background-color 0.2s ease,
 			border-color 0.2s ease;
 		box-sizing: border-box;
-		overflow: hidden; /* Hide overflowing text */
-		text-overflow: ellipsis; /* Add ellipsis for hidden text */
-		white-space: nowrap; /* Prevent text from wrapping */
-		margin: auto; /* Center within grid cell */
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		margin: auto;
 	}
 	/* Specific styles for Main View grid */
 	.hypertac-grid.main-grid-view {
-		gap: 0.5rem;
+		gap: 0.8rem; /* เพิ่ม gap ให้มากขึ้นเพื่อไม่ให้ติดกันเกินไป */
 	}
-	/* Specific styles for Main View slots (make them look like modal view slots) */
+	/* Specific styles for Main View slots (ให้มองชัดๆ ไม่ติดกันเกินในแนวตั้ง) */
 	.hypertac-slot.main-slot-view {
-		font-size: 0.35rem; /* Make font small like modal view */
-		padding: 0;
-		min-width: 18px; /* Small size like modal view */
-		min-height: 18px;
-		max-width: 28px; /* Max size to keep them consistent */
-		max-height: 28px;
+		font-size: 0.7rem; /* เพิ่มขนาด font */
+		padding: 0.3rem; /* เพิ่ม padding เล็กน้อย */
+		min-width: 50px; /* เพิ่มขนาดวงกลม */
+		min-height: 50px;
+		max-width: 70px; /* จำกัดขนาดสูงสุด */
+		max-height: 70px;
 	}
 	/* Specific styles for Modal View grid */
 	.hypertac-grid.modal-grid-view {
-		gap: 0.2rem; /* Very small gap for modal view (dense) */
-		/* No fixed height here, let flex-grow and overflow handle it */
+		gap: 0.2rem;
 	}
-	/* Specific styles for Modal View slots */
+	/* Specific styles for Modal View slots (คงขนาดเดิม) */
 	.hypertac-slot.modal-slot-view {
-		font-size: 0.35rem; /* Small font for modal view */
+		font-size: 0.35rem;
 		padding: 0;
-		min-width: 18px; /* Small size for modal view */
+		min-width: 18px;
 		min-height: 18px;
 		max-width: 28px;
 		max-height: 28px;
 	}
+	/* Color styles (ไม่มีการเปลี่ยนแปลง) */
 	.hypertac-slot.used {
 		background-color: var(--color-slot-used);
 		border-color: var(--color-primary-green);
