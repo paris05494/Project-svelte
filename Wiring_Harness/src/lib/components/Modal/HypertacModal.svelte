@@ -1,24 +1,17 @@
 <script lang="ts">
 	import HypertacVisualizer from '../HypertacVisualizer.svelte';
-	import { Button } from 'flowbite-svelte'; // Keep Button for the close button
+	import { Button } from 'flowbite-svelte';
 
-	export let showModal: boolean; // Prop to control modal visibility
-	export let onClose: () => void; // Callback function to close the modal
+	export let showModal: boolean;
+	export let onClose: () => void;
 
 	// Function to handle clicks outside the modal content
 	function handleClickOutside(event: MouseEvent) {
-		// Only close if the click is on the overlay itself, not on the modal content
 		if (event.target === event.currentTarget) {
 			onClose();
 		}
 	}
 
-	// Log for debugging: จะเห็นข้อความนี้ใน Console ก็ต่อเมื่อ showModal เป็น true เท่านั้น
-	$: if (showModal) {
-		console.log('HypertacModal is now rendered and showModal is TRUE.');
-	} else {
-		console.log('HypertacModal is NOT rendered because showModal is FALSE.');
-	}
 </script>
 
 {#if showModal}
@@ -63,5 +56,5 @@
 {/if}
 
 <style>
-	/* No component-specific styles needed here, Tailwind handles most */
+
 </style>
