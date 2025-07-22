@@ -2,73 +2,50 @@
 	import { appStore } from '../stores/app-store';
 	import type { IHypertacSlot } from '../model/Hypertac';
 	import { config as backendConfig } from '../../backend_config'; // Ensure this path is correct
-
 	export let isMainView: boolean; // Prop to differentiate main view from modal view
-
 	$: isModalView = !isMainView;
 
-	// ใช้ค่าจาก backend_config สำหรับ Main View และค่าคงที่สำหรับ Modal View
-	const MAIN_VIEW_ROWS = backendConfig.hypertacConfig.rows;
 	const MAIN_VIEW_COLS = backendConfig.hypertacConfig.cols;
-
-	const MODAL_VIEW_ROWS = 18; // Fixed rows for modal view
-	const MODAL_VIEW_COLS = 5; // Fixed cols for modal view
-
-	// กำหนดจำนวนแถวและคอลัมน์ตามมุมมอง (Main หรือ Modal)
-	$: HYPERTAC_ROWS = isModalView ? MODAL_VIEW_ROWS : MAIN_VIEW_ROWS;
+	const MODAL_VIEW_COLS = 10;
 	$: HYPERTAC_COLS = isModalView ? MODAL_VIEW_COLS : MAIN_VIEW_COLS;
-	$: TOTAL_CONCEPTUAL_SLOTS = HYPERTAC_ROWS * HYPERTAC_COLS;
 
-	// Derived state for the slots to display
 	$: displaySlots = (() => {
-		// หากมีข้อมูล visualizationData และมี hypertacSlots
-		if ($appStore.visualizationData?.hypertacSlots.length) {
-			const dataSlots = [...$appStore.visualizationData.hypertacSlots];
+		const allSlots: IHypertacSlot[] = [];
+		const dataSlots = $appStore.visualizationData?.hypertacSlots || [];
+		const existingSlotMap = new Map<string, IHypertacSlot>();
 
-			// สร้าง Set ของ ID ช่องที่มีข้อมูลอยู่แล้ว เพื่อใช้ตรวจสอบ
-			const existingSlotIds = new Set(dataSlots.map((s) => s.id));
+		for (const slot of dataSlots) {
+			existingSlotMap.set(`R${slot.row}C${slot.col}`, slot);
+		}
 
-			// สร้าง array ใหม่สำหรับเก็บ slots ทั้งหมด รวมถึงช่องว่าง
-			const finalSlots: IHypertacSlot[] = [];
+		let currentMaxRow = 0;
+		if (dataSlots.length > 0) {
+			currentMaxRow = dataSlots.reduce((max, s) => Math.max(max, s.row), 0);
+		}
 
-			for (let r = 1; r <= HYPERTAC_ROWS; r++) {
-				for (let c = 1; c <= HYPERTAC_COLS; c++) {
-					const id = `R${r}C${c}`;
-					// ค้นหา slot ที่มีอยู่
-					const existingSlot = dataSlots.find((s) => s.row === r && s.col === c);
+		let effectiveRows = 0;
+		if (isModalView) {
 
-					if (existingSlot) {
-						finalSlots.push(existingSlot);
-					} else {
-						// เพิ่ม slot ว่างเปล่าถ้าไม่มีข้อมูลสำหรับตำแหน่งนี้
-						finalSlots.push({
-							id: id,
-							row: r,
-							col: c,
-							isUsed: false,
-							signalName: null,
-							ecuName: null,
-							ecuPin: null,
-							physicalHypertacId: null,
-							isReused: false
-						});
-					}
-				}
-			}
-			// คืนค่า finalSlots ที่เรียงลำดับแล้ว
-			return finalSlots.sort((a, b) => {
-				if (a.row === b.row) {
-					return a.col - b.col;
-				}
-				return a.row - b.row;
-			});
+			effectiveRows = 18;
 		} else {
-			// หากไม่มีข้อมูล (visualizationData เป็น null หรือว่างเปล่า) ให้แสดงวงกลมว่างเปล่าตามจำนวนช่องที่กำหนด
-			const emptySlots: IHypertacSlot[] = [];
-			for (let r = 1; r <= HYPERTAC_ROWS; r++) {
-				for (let c = 1; c <= HYPERTAC_COLS; c++) {
-					emptySlots.push({
-						id: `R${r}C${c}`,
+
+			effectiveRows = Math.max(backendConfig.hypertacConfig.rows, currentMaxRow);
+
+			if (dataSlots.length === 0) {
+				effectiveRows = backendConfig.hypertacConfig.rows;
+			}
+		}
+
+		effectiveRows = Math.max(effectiveRows, 5);
+		for (let r = 1; r <= effectiveRows; r++) {
+			for (let c = 1; c <= HYPERTAC_COLS; c++) {
+				const id = `R${r}C${c}`;
+				const existingSlot = existingSlotMap.get(id);
+				if (existingSlot) {
+					allSlots.push(existingSlot);
+				} else {
+					allSlots.push({
+						id: id,
 						row: r,
 						col: c,
 						isUsed: false,
@@ -80,37 +57,49 @@
 					});
 				}
 			}
-			return emptySlots;
 		}
+		return allSlots.sort((a, b) => {
+			if (a.row === b.row) {
+				return a.col - b.col;
+			}
+			return a.row - b.row;
+		});
 	})();
+	$: HYPERTAC_ROWS = Math.ceil(displaySlots.length / HYPERTAC_COLS);
 </script>
 
-<div class="panel flex h-full flex-col">
+<div class="flex h-full flex-col">
 	{#if $appStore.isLoading}
 		<div class="flex flex-grow items-center justify-center">
 			<p class="text-lg text-gray-500">Loading Hypertac data...</p>
 		</div>
 	{:else if $appStore.error && isMainView}
-		<div class="flex flex-grow items-center justify-center"></div>
+		<div class="flex flex-grow items-center justify-center">
+			<p class="text-lg text-red-600">Error: {$appStore.error}</p>
+		</div>
 	{:else}
 		<div
-			class="flex-grow p-2 {isMainView ? 'custom-scrollbar overflow-y-auto' : 'overflow-hidden'}"
+			class="flex-grow p-2 {isMainView || isModalView
+				? 'custom-scrollbar overflow-y-auto'
+				: 'overflow-hidden'}"
 		>
 			<div
-				class="hypertac-grid w-full {isModalView ? 'modal-view' : 'main-view'}"
+				class="hypertac-grid w-full {isModalView ? 'modal-grid-view' : 'main-grid-view'}"
 				style="--hypertac-rows: {HYPERTAC_ROWS}; --hypertac-cols: {HYPERTAC_COLS};"
 			>
 				{#each displaySlots as slot (slot.id)}
 					<div
 						class="hypertac-slot {slot.isUsed ? 'used' : 'empty'} {slot.isReused
 							? 'reused'
-							: ''} {isModalView ? 'modal-view' : 'main-view'}"
+							: ''} {isModalView ? 'modal-slot-view' : 'main-slot-view'}"
 						title={slot.isUsed
 							? `Signal: ${slot.signalName || 'N/A'}\nECU: ${slot.ecuName || 'N/A'}${slot.ecuPin ? ` (Pin: ${slot.ecuPin})` : ''}\nHypertac Slot: ${slot.id}${slot.physicalHypertacId ? ` (Physical: ${slot.physicalHypertacId})` : ''}\n${slot.isReused ? ' (REUSED)' : ''}`
 							: `Empty Slot: ${slot.id}`}
 					>
 						{#if slot.isUsed}
-							<span class="truncate">{slot.signalName}</span>
+							<span class="truncate">
+								{isModalView ? slot.physicalHypertacId || slot.id : slot.signalName}
+							</span>
 							{#if slot.isReused}
 								<span class="ml-1 text-[var(--color-slot-reused-text)]"> (R)</span>
 							{/if}
@@ -123,13 +112,6 @@
 </div>
 
 <style>
-	.panel {
-		display: flex;
-		flex-direction: column;
-		height: 100%; /* Important for proper flex-grow behavior */
-	}
-
-	/* Custom scrollbar for better visibility */
 	.custom-scrollbar::-webkit-scrollbar {
 		width: 8px;
 	}
@@ -143,5 +125,88 @@
 	}
 	.custom-scrollbar::-webkit-scrollbar-thumb:hover {
 		background: #555;
+	}
+	/* Base styles for the grid container */
+	.hypertac-grid {
+		display: grid;
+		width: 100%;
+		height: 100%; /* Ensures the grid tries to fill its container */
+		grid-template-columns: repeat(var(--hypertac-cols), minmax(0, 1fr));
+		grid-template-rows: repeat(var(--hypertac-rows), minmax(0, 1fr)); /* Use explicit rows */
+		gap: 0.2rem; /* Default small gap */
+	}
+	/* Base styles for individual slots */
+	.hypertac-slot {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border: 1px solid var(--color-slot-empty);
+		border-radius: 9999px; /* Makes it a perfect circle */
+		aspect-ratio: 1 / 1; /* Ensures it's a perfect circle */
+		font-weight: 500;
+		text-align: center;
+		cursor: default;
+		transition:
+			background-color 0.2s ease,
+			border-color 0.2s ease;
+		box-sizing: border-box;
+		overflow: hidden; /* Hide overflowing text */
+		text-overflow: ellipsis; /* Add ellipsis for hidden text */
+		white-space: nowrap; /* Prevent text from wrapping */
+		margin: auto; /* Center within grid cell */
+	}
+	/* Specific styles for Main View grid */
+	.hypertac-grid.main-grid-view {
+		gap: 0.5rem;
+	}
+	/* Specific styles for Main View slots (make them look like modal view slots) */
+	.hypertac-slot.main-slot-view {
+		font-size: 0.35rem; /* Make font small like modal view */
+		padding: 0;
+		min-width: 18px; /* Small size like modal view */
+		min-height: 18px;
+		max-width: 28px; /* Max size to keep them consistent */
+		max-height: 28px;
+	}
+	/* Specific styles for Modal View grid */
+	.hypertac-grid.modal-grid-view {
+		gap: 0.2rem; /* Very small gap for modal view (dense) */
+		/* No fixed height here, let flex-grow and overflow handle it */
+	}
+	/* Specific styles for Modal View slots */
+	.hypertac-slot.modal-slot-view {
+		font-size: 0.35rem; /* Small font for modal view */
+		padding: 0;
+		min-width: 18px; /* Small size for modal view */
+		min-height: 18px;
+		max-width: 28px;
+		max-height: 28px;
+	}
+	.hypertac-slot.used {
+		background-color: var(--color-slot-used);
+		border-color: var(--color-primary-green);
+		color: var(--color-slot-used-text);
+	}
+	.hypertac-slot.empty {
+		background-color: var(--color-slot-empty);
+		border-color: var(--color-slot-empty);
+		color: var(--color-slot-empty-text);
+	}
+	.hypertac-slot.reused {
+		background-color: var(--color-slot-reused);
+		border-color: var(--color-slot-reused-text);
+		color: var(--color-slot-reused-text);
+		animation: pulse-red 1.5s infinite;
+	}
+	@keyframes pulse-red {
+		0% {
+			box-shadow: 0 0 0 0 rgba(252, 165, 165, 0.7);
+		}
+		70% {
+			box-shadow: 0 0 0 5px rgba(252, 165, 165, 0);
+		}
+		100% {
+			box-shadow: 0 0 0 0 rgba(252, 165, 165, 0);
+		}
 	}
 </style>
