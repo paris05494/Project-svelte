@@ -7,11 +7,12 @@
 	import HypertacSlotDetailModal from '$lib/hypertac/Modal/HypertacSlotDetailModal.svelte';
 	import { appStore } from '$lib/stores/app-store';
 	import { Button } from 'flowbite-svelte';
-	import type { IHypertacSlot } from '$lib/model/Hypertac'; // <--- Type นี้สำคัญ
+	import type { IHypertacSlot } from '$lib/model/Hypertac';
 	import expandLogo from '$lib/assets/expandLogo.png';
+	
 	let statusPanelCollapsed: boolean = true;
 	let showHypertacFullScreen: boolean = false;
-	let selectedSlot: IHypertacSlot | null = null; // <--- ตัวแปรนี้คือ selectedSlot ที่คุณถามถึง
+	let selectedSlot: IHypertacSlot | null = null;
 	// Control body overflow when modal is open
 	$: {
 		if (typeof document !== 'undefined') {
@@ -76,7 +77,7 @@
 					<img src={expandLogo} alt="Expand Logo" class="h-5 w-5" />
 				</Button>
 			</div>
-			<div class="scrollable-content max-h-[calc(100vh - 350px)] relative flex-grow overflow-y-auto">
+			<div class="scrollable-content max-h-[calc(100vh - 120px)] relative flex-grow overflow-y-auto">
 				<HypertacVisualizer
 					visualizationData={$appStore.visualizationData}
 					isMainView={true}
