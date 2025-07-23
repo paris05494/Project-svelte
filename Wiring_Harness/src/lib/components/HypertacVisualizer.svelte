@@ -2,6 +2,8 @@
 	import { appStore } from '../stores/app-store';
 	import type { IHypertacSlot, IHypertacVisualizationData } from '../model/Hypertac';
 	import { config as backendConfig } from '../../backend_config';
+	import { createEventDispatcher } from 'svelte';
+	const dispatch = createEventDispatcher();
 	export let isMainView: boolean;
 	$: isModalView = !isMainView;
 	const MAIN_VIEW_COLS = backendConfig.hypertacConfig.cols;
@@ -25,12 +27,8 @@
 		if (isModalView) {
 			effectiveRows = 18; // Fixed rows for modal to ensure density
 		} else {
-			// For Main View, use a base from backend config or currentMaxRow, ensuring it allows content to overflow for scroll
-			// The height of the Hypertac container in +page.svelte will determine when scroll kicks in.
-			// Here, we just ensure enough rows are *generated* to contain all data.
-			effectiveRows = Math.max(backendConfig.hypertacConfig.rows, neededRowsForData, 5); // Ensure at least 5 rows for visibility, and enough for data
+			effectiveRows = Math.max(backendConfig.hypertacConfig.rows, neededRowsForData, 5);
 		}
-		// Ensure minimum 5 rows for Main View, and 18 for Modal View, to always have some grid space
 		effectiveRows = Math.max(effectiveRows, isModalView ? 18 : 5);
 		for (let r = 1; r <= effectiveRows; r++) {
 			for (let c = 1; c <= HYPERTAC_COLS; c++) {
@@ -60,8 +58,10 @@
 			return a.row - b.row;
 		});
 	})();
-	// HYPERTAC_ROWS ต้องถูกคำนวณจากจำนวนช่องทั้งหมดหารด้วยจำนวนคอลัมน์ เพื่อให้ Grid มีแถวพอดี
 	$: HYPERTAC_ROWS = Math.ceil(displaySlots.length / HYPERTAC_COLS);
+	function onSlotClick(slot: IHypertacSlot) {
+		dispatch('slotClick', slot); // Dispatch event when a slot is clicked
+	}
 </script>
 
 <div class="h-full w-full">
@@ -76,17 +76,21 @@
 	{:else}
 		<div class="h-full w-full p-2">
 			<div
-				class="hypertac-grid w-full {isModalView ? 'modal-grid-view' : 'main-grid-view'}"
+				class="hypertac-grid w-full {isModalView ? 'modal-view' : ''}"
 				style="--hypertac-rows: {HYPERTAC_ROWS}; --hypertac-cols: {HYPERTAC_COLS};"
 			>
 				{#each displaySlots as slot (slot.id)}
 					<div
 						class="hypertac-slot {slot.isUsed ? 'used' : 'empty'} {slot.isReused
 							? 'reused'
-							: ''} {isModalView ? 'modal-slot-view' : 'main-slot-view'}"
+							: ''} {isModalView ? 'modal-view' : ''}"
 						title={slot.isUsed
 							? `Signal: ${slot.signalName || 'N/A'}\nECU: ${slot.ecuName || 'N/A'}${slot.ecuPin ? ` (Pin: ${slot.ecuPin})` : ''}\nHypertac Slot: ${slot.id}${slot.physicalHypertacId ? ` (Physical: ${slot.physicalHypertacId})` : ''}\n${slot.isReused ? ' (REUSED)' : ''}`
 							: `Empty Slot: ${slot.id}`}
+						role="button"
+						tabindex="0"
+						on:click={() => onSlotClick(slot)}
+						on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && onSlotClick(slot)}
 					>
 						{#if slot.isUsed}
 							<span class="truncate">
@@ -104,29 +108,13 @@
 </div>
 
 <style>
-	/* Custom scrollbar styles (ยังคงอยู่ตรงนี้ เพื่อให้ parent สามารถเรียกใช้ class ได้) */
-	.custom-scrollbar::-webkit-scrollbar {
-		width: 8px;
-	}
-	.custom-scrollbar::-webkit-scrollbar-track {
-		background: #f1f1f1;
-		border-radius: 4px;
-	}
-	.custom-scrollbar::-webkit-scrollbar-thumb {
-		background: #888;
-		border-radius: 4px;
-	}
-	.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-		background: #555;
-	}
 	/* Base styles for the grid container */
 	.hypertac-grid {
 		display: grid;
 		width: 100%;
 		height: auto; /* Allow grid to determine its own height based on content */
 		grid-template-columns: repeat(var(--hypertac-cols), minmax(0, 1fr));
-		grid-template-rows: repeat(var(--hypertac-rows), auto); /* Each row takes content height */
-		gap: 0.2rem; /* Default small gap */
+		grid-template-rows: repeat(var(--hypertac-rows), auto);
 	}
 	/* Base styles for individual slots */
 	.hypertac-slot {
@@ -138,7 +126,7 @@
 		aspect-ratio: 1 / 1;
 		font-weight: 500;
 		text-align: center;
-		cursor: default;
+		cursor: default; /* Changed to pointer in app.css */
 		transition:
 			background-color 0.2s ease,
 			border-color 0.2s ease;
@@ -148,25 +136,11 @@
 		white-space: nowrap;
 		margin: auto;
 	}
-	/* Specific styles for Main View grid */
-	.hypertac-grid.main-grid-view {
-		gap: 0.8rem; /* เพิ่ม gap ให้มากขึ้นเพื่อไม่ให้ติดกันเกินไป */
-	}
-	/* Specific styles for Main View slots (ให้มองชัดๆ ไม่ติดกันเกินในแนวตั้ง) */
-	.hypertac-slot.main-slot-view {
-		font-size: 0.7rem; /* เพิ่มขนาด font */
-		padding: 0.3rem; /* เพิ่ม padding เล็กน้อย */
-		min-width: 50px; /* เพิ่มขนาดวงกลม */
-		min-height: 50px;
-		max-width: 70px; /* จำกัดขนาดสูงสุด */
-		max-height: 70px;
-	}
-	/* Specific styles for Modal View grid */
-	.hypertac-grid.modal-grid-view {
+	.hypertac-grid.modal-view {
 		gap: 0.2rem;
 	}
 	/* Specific styles for Modal View slots (คงขนาดเดิม) */
-	.hypertac-slot.modal-slot-view {
+	.hypertac-slot.modal-view {
 		font-size: 0.35rem;
 		padding: 0;
 		min-width: 18px;
@@ -174,7 +148,7 @@
 		max-width: 28px;
 		max-height: 28px;
 	}
-	/* Color styles (ไม่มีการเปลี่ยนแปลง) */
+	/* Color styles (คงไว้) */
 	.hypertac-slot.used {
 		background-color: var(--color-slot-used);
 		border-color: var(--color-primary-green);
