@@ -3,6 +3,7 @@
 	import type { IHypertacSlot, IHypertacVisualizationData } from '../model/Hypertac';
 	import { config as backendConfig } from '../../backend_config';
 	import { createEventDispatcher } from 'svelte';
+
 	const dispatch = createEventDispatcher();
 	export let isMainView: boolean;
 	$: isModalView = !isMainView;
@@ -74,7 +75,7 @@
 			<p class="text-lg text-red-600">Error: {$appStore.error}</p>
 		</div>
 	{:else}
-		<div class="h-full w-full p-2">
+		<div class="h-full w-full p-2 ">
 			<div
 				class="hypertac-grid w-full {isModalView ? 'modal-view' : ''}"
 				style="--hypertac-rows: {HYPERTAC_ROWS}; --hypertac-cols: {HYPERTAC_COLS};"
@@ -108,38 +109,9 @@
 </div>
 
 <style>
-	/* Base styles for the grid container */
-	.hypertac-grid {
-		display: grid;
-		width: 100%;
-		height: auto; /* Allow grid to determine its own height based on content */
-		grid-template-columns: repeat(var(--hypertac-cols), minmax(0, 1fr));
-		grid-template-rows: repeat(var(--hypertac-rows), auto);
-	}
-	/* Base styles for individual slots */
-	.hypertac-slot {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border: 1px solid var(--color-slot-empty);
-		border-radius: 9999px;
-		aspect-ratio: 1 / 1;
-		font-weight: 500;
-		text-align: center;
-		cursor: default; /* Changed to pointer in app.css */
-		transition:
-			background-color 0.2s ease,
-			border-color 0.2s ease;
-		box-sizing: border-box;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		margin: auto;
-	}
 	.hypertac-grid.modal-view {
 		gap: 0.2rem;
 	}
-	/* Specific styles for Modal View slots (คงขนาดเดิม) */
 	.hypertac-slot.modal-view {
 		font-size: 0.35rem;
 		padding: 0;
@@ -148,7 +120,6 @@
 		max-width: 28px;
 		max-height: 28px;
 	}
-	/* Color styles (คงไว้) */
 	.hypertac-slot.used {
 		background-color: var(--color-slot-used);
 		border-color: var(--color-primary-green);
