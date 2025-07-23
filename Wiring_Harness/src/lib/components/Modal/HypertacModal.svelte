@@ -1,35 +1,42 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import { appStore } from '$lib/stores/app-store';
+
 	export let showModal: boolean;
 	export let onClose: () => void;
-	const dispatch = createEventDispatcher();
+
 	function handleClickOutside(event: MouseEvent) {
 		const modalContent = document.querySelector('.modal-content');
 		if (modalContent && !modalContent.contains(event.target as Node)) {
 			onClose();
 		}
 	}
-	// Control body overflow when modal is open
-	$: {
-		if (typeof document !== 'undefined') {
-			if (showModal) {
-				document.body.style.overflow = 'hidden';
-			} else {
-				document.body.style.overflow = '';
-			}
+
+	function handleKeyDown(event: KeyboardEvent) {
+		if (event.key === 'Enter' || event.key === ' ') {
+			handleClickOutside(event as unknown as MouseEvent);
 		}
 	}
 </script>
 
 {#if showModal}
-	<div class="modal-overlay" on:click={handleClickOutside}>
+	<div
+		class="modal-overlay"
+		role="button"
+		tabindex="0"
+		on:click={handleClickOutside}
+		on:keydown={handleKeyDown}
+	>
 		<div class="modal-content panel flex flex-col">
 			<div class="mb-4 flex items-center justify-between">
 				<h3 class="text-2xl font-bold text-[var(--color-primary-green)]">
 					Full-Screen Hypertac View
 				</h3>
-				<button on:click={onClose} class="text-gray-500 hover:text-gray-700" aria-label="Close modal">
+				<button
+					on:click={onClose}
+					class="text-gray-500 hover:text-gray-700"
+					aria-label="Close modal"
+				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						class="h-6 w-6"
@@ -46,15 +53,20 @@
 					</svg>
 				</button>
 			</div>
+
 			<div class="custom-scrollbar flex-grow overflow-y-auto">
-				<slot />
+				{#if $appStore.isLoading}
+					<div class="flex h-full items-center justify-center">
+						<p class="text-lg text-gray-500">Loading Hypertac data...</p>
+					</div>
+				{:else if $appStore.error}
+					<div class="flex h-full items-center justify-center">
+						<p class="text-lg text-red-600">Error: {$appStore.error}</p>
+					</div>
+				{:else}
+					<slot />
+				{/if}
 			</div>
-			{#if $appStore.isLoading}
-				<p class="mt-2 text-center text-sm text-gray-500">Loading...</p>
-			{/if}
-			{#if $appStore.error}
-				<p class="mt-2 text-sm text-red-600">Error: {$appStore.error}</p>
-			{/if}
 		</div>
 	</div>
 {/if}
@@ -72,6 +84,7 @@
 		align-items: center;
 		z-index: 1000;
 	}
+
 	.modal-content {
 		background-color: var(--color-neutral-white);
 		border-radius: 0.5rem;
