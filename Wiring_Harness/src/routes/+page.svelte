@@ -4,16 +4,18 @@
 	import HypertacVisualizer from '$lib/hypertac/HypertacVisualizer.svelte';
 	import SignalInfoPanel from '$lib/hypertac/SignalInfoPanel.svelte';
 	import HypertacModal from '$lib/hypertac/Modal/HypertacModal.svelte';
+	import HypertacSlotDetailModal from '$lib/hypertac/Modal/HypertacSlotDetailModal.svelte';
 	import { appStore } from '$lib/stores/app-store';
 	import { Button } from 'flowbite-svelte';
+	import type { IHypertacSlot } from '$lib/model/Hypertac'; // <--- Type นี้สำคัญ
+	import expandLogo from '$lib/assets/expandLogo.png';
 	let statusPanelCollapsed: boolean = true;
 	let showHypertacFullScreen: boolean = false;
-	import expandLogo from '$lib/assets/expandLogo.png';
-
+	let selectedSlot: IHypertacSlot | null = null; // <--- ตัวแปรนี้คือ selectedSlot ที่คุณถามถึง
 	// Control body overflow when modal is open
 	$: {
 		if (typeof document !== 'undefined') {
-			if (showHypertacFullScreen) {
+			if (showHypertacFullScreen || selectedSlot) {
 				document.body.style.overflow = 'hidden';
 			} else {
 				document.body.style.overflow = '';
@@ -23,15 +25,27 @@
 	function openFullScreenHypertacView() {
 		if ($appStore.visualizationData?.hypertacSlots.length) {
 			showHypertacFullScreen = true;
-			appStore.setError(null); // Clear any error on successful action
+			appStore.setError(null);
+			appStore.updateStatus('Opening full-screen Hypertac view.');
 		} else {
 			appStore.setError(
 				'Upload an Excel file and visualize the Hypertac data before opening the full-screen display mode.'
 			);
+			appStore.updateStatus('Failed to open full-screen view: No data available.');
 		}
 	}
 	function closeFullScreenHypertacView() {
 		showHypertacFullScreen = false;
+		appStore.updateStatus('Full-screen Hypertac view closed.');
+	}
+
+	function handleSlotClick(event: CustomEvent<IHypertacSlot>) {
+		selectedSlot = event.detail;
+		appStore.updateStatus(`Slot ${selectedSlot.id} clicked.`);
+	}
+
+	function closeSlotDetailPopup() {
+		selectedSlot = null;
 	}
 </script>
 
@@ -62,14 +76,24 @@
 					<img src={expandLogo} alt="Expand Logo" class="h-5 w-5" />
 				</Button>
 			</div>
-			<div class="custom-scrollbar relative flex-grow overflow-y-auto">
-				<HypertacVisualizer visualizationData={$appStore.visualizationData} isMainView={true} />
+			<div class="scrollable-content max-h-[calc(100vh - 350px)] relative flex-grow overflow-y-auto">
+				<HypertacVisualizer
+					visualizationData={$appStore.visualizationData}
+					isMainView={true}
+					on:slotClick={handleSlotClick}
+				/>
 			</div>
 		</div>
 		<div class="flex flex-grow-[1] flex-col"><SignalInfoPanel /></div>
 	</div>
 </div>
-
 <HypertacModal showModal={showHypertacFullScreen} onClose={closeFullScreenHypertacView}>
-	<HypertacVisualizer visualizationData={$appStore.visualizationData} isMainView={false} />
+	<HypertacVisualizer
+		visualizationData={$appStore.visualizationData}
+		isMainView={false}
+		on:slotClick={handleSlotClick}
+	/>
 </HypertacModal>
+{#if selectedSlot}
+	<HypertacSlotDetailModal slotData={selectedSlot} onClose={closeSlotDetailPopup} />
+{/if}
