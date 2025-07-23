@@ -32,6 +32,7 @@ body {
         0 2px 4px -2px rgb(0 0 0 / 0.1);
     padding: 1rem;
     height: 100%;
+    /* panel can define its own height */
     display: flex;
     flex-direction: column;
 }
@@ -40,35 +41,36 @@ body {
     overflow-y: auto;
 }
 
+/* Global Custom Scrollbar Styles - Now in app.css */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    /* For horizontal scrollbar */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
 /* Hypertac grid - Default (for main view) */
 .hypertac-grid {
     display: grid;
     grid-template-columns: repeat(var(--hypertac-cols), minmax(0, 1fr));
-    grid-template-rows: repeat(var(--hypertac-rows), minmax(0, 1fr));
-    gap: 0.25rem;
-    /* Reverted to original smaller gap for main view */
-    height: 100%;
-    max-height: 100%;
-    overflow-y: auto;
-    padding-right: 0.5rem;
+    grid-template-rows: repeat(var(--hypertac-rows), auto);
+    gap: 0.8rem;
+    width: 100%;
+    height: auto;
 
-    &::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    &::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 4px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        background: #888;
-        border-radius: 4px;
-    }
-
-    &::-webkit-scrollbar-thumb:hover {
-        background: #555;
-    }
 }
 
 /* Hypertac slot - Default (for main view) */
@@ -81,22 +83,28 @@ body {
     /* Makes it a circle */
     aspect-ratio: 1 / 1;
     /* Ensures it's a perfect circle */
-    font-size: 0.65rem;
-    /* Reverted to original font size for main view */
+    font-size: 0.7rem;
+    /* Adjusted for readability */
     font-weight: 500;
     text-align: center;
-    cursor: default;
-    padding: 0.1rem;
-    /* Reverted to original padding for main view */
+    cursor: pointer;
+    /* Indicate it's clickable */
+    padding: 0.3rem;
+    /* Adjusted for readability */
     transition:
         background-color 0.2s ease,
         border-color 0.2s ease;
     box-sizing: border-box;
     overflow: hidden;
     text-overflow: ellipsis;
-    /* Removed explicit min/max width/height for default view to let grid handle it */
+    white-space: nowrap;
+    min-width: 50px;
+    /* Bigger size for main view */
+    min-height: 50px;
+    max-width: 70px;
+    /* Limit max size */
+    max-height: 70px;
     margin: auto;
-    /* Keep auto margin to center within cell */
 }
 
 .hypertac-slot.used {
@@ -118,27 +126,18 @@ body {
     animation: pulse-red 1.5s infinite;
 }
 
-/* --- Styles specifically for Hypertac in Modal View --- */
-/* (ต้องมีทั้ง class hypertac-grid และ modal-view จึงจะใช้ style นี้) */
 .hypertac-grid.modal-view {
-    gap: 1rem;
-    /* Increased gap for modal view, both horizontal and vertical */
+    gap: 0.2rem;
+    /* Reduced gap for modal view (dense) */
 }
 
-/* (ต้องมีทั้ง class hypertac-slot และ modal-view จึงจะใช้ style นี้) */
 .hypertac-slot.modal-view {
-    font-size: 0.4rem;
-    /* Even smaller font for modal view */
+    font-size: 0.35rem;
     padding: 0.05rem;
-    /* Reduced padding for modal view */
-    min-width: 15px;
-    /* Smaller min width for modal circles */
-    min-height: 15px;
-    /* Smaller min height for modal circles */
-    max-width: 30px;
-    /* Smaller max width for modal circles */
-    max-height: 30px;
-    /* Smaller max height for modal circles */
+    min-width: 18px;
+    min-height: 18px;
+    max-width: 28px;
+    max-height: 28px;
 }
 
 @keyframes pulse-red {
@@ -164,6 +163,7 @@ body {
 
     .md\:col-span-3,
     .md\:col-span-6 {
+        /* Corrected from 6 to 9 as per +page.svelte */
         width: 100%;
     }
 
