@@ -5,12 +5,12 @@
 
 :root {
     --color-primary-green: #428003;
-    --color-primary-green-light: #d1fae5;
+    --color-primary-green-light: #b0ff45;
     --color-secondary-purple: #622ad8;
     --color-secondary-purple-light: #ede9fe;
     --color-neutral-white: #ffffff;
     --color-neutral-light-gray: #f3f4f6;
-    --color-text-dark: #1f2937;
+    --color-text-dark: #212121;
     --color-text-light: #ffffff;
     --color-slot-used: #d1fae5;
     --color-slot-used-text: #065f46;
@@ -22,6 +22,12 @@
 
 body {
     @apply bg-[var(--color-neutral-light-gray)] text-[var(--color-text-dark)];
+}
+
+.background-topic {
+    background-color: var(--color-text-dark);
+    padding: 0.5%;
+    color: var(--color-primary-green-light);
 }
 
 .panel {
@@ -37,11 +43,11 @@ body {
     flex-direction: column;
 }
 
+/* Global Custom Scrollbar Styles */
 .scrollable-content {
     overflow-y: auto;
 }
 
-/* Global Custom Scrollbar Styles - Now in app.css */
 .custom-scrollbar::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -67,10 +73,13 @@ body {
     display: grid;
     grid-template-columns: repeat(var(--hypertac-cols), minmax(0, 1fr));
     grid-template-rows: repeat(var(--hypertac-rows), auto);
+    /* Allow rows to size based on content */
     gap: 0.8rem;
+    /* Use a larger gap for main view by default here */
     width: 100%;
     height: auto;
-
+    padding-right: 0.5rem;
+    /* Add padding for scrollbar visibility */
 }
 
 /* Hypertac slot - Default (for main view) */
@@ -107,6 +116,7 @@ body {
     margin: auto;
 }
 
+/* Color styles */
 .hypertac-slot.used {
     background-color: var(--color-slot-used);
     border-color: var(--color-primary-green);
@@ -126,18 +136,26 @@ body {
     animation: pulse-red 1.5s infinite;
 }
 
+/* --- Styles specifically for Hypertac in Modal View --- */
 .hypertac-grid.modal-view {
-    gap: 0.2rem;
-    /* Reduced gap for modal view (dense) */
+    gap: 0.4rem;
+    /* Reduced gap for modal view (dense)*/
 }
 
+/* Styles specifically for Slot in Modal */
 .hypertac-slot.modal-view {
-    font-size: 0.35rem;
-    padding: 0.05rem;
-    min-width: 18px;
-    min-height: 18px;
-    max-width: 28px;
-    max-height: 28px;
+    font-size: 0.6rem;
+    /* Even smaller font for modal view */
+    padding: 0.15rem;
+    /* Reduced padding for modal view */
+    min-width: 70px;
+    /* Smaller min width for modal circles */
+    min-height: 70px;
+    /* Smaller min height for modal circles */
+    max-width: 90px;
+    /* Smaller max width for modal circles */
+    max-height: 90px;
+    /* Smaller max height for modal circles */
 }
 
 @keyframes pulse-red {
@@ -163,7 +181,6 @@ body {
 
     .md\:col-span-3,
     .md\:col-span-6 {
-        /* Corrected from 6 to 9 as per +page.svelte */
         width: 100%;
     }
 
