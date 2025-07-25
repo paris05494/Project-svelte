@@ -8,7 +8,7 @@
 	export let isMainView: boolean;
 	$: isModalView = !isMainView;
 	const MAIN_VIEW_COLS = backendConfig.hypertacConfig.cols;
-	const MODAL_VIEW_COLS = 10;
+	const MODAL_VIEW_COLS = 5;
 	$: HYPERTAC_COLS = isModalView ? MODAL_VIEW_COLS : MAIN_VIEW_COLS;
 	export let visualizationData: IHypertacVisualizationData | null;
 	$: displaySlots = (() => {
@@ -26,7 +26,7 @@
 			dataSlots.length > 0 ? Math.ceil(dataSlots.length / HYPERTAC_COLS) : 0;
 		let effectiveRows = 0;
 		if (isModalView) {
-			effectiveRows = 18; // Fixed rows for modal to ensure density
+			effectiveRows = 18;
 		} else {
 			effectiveRows = Math.max(backendConfig.hypertacConfig.rows, neededRowsForData, 5);
 		}
@@ -61,7 +61,7 @@
 	})();
 	$: HYPERTAC_ROWS = Math.ceil(displaySlots.length / HYPERTAC_COLS);
 	function onSlotClick(slot: IHypertacSlot) {
-		dispatch('slotClick', slot); // Dispatch event when a slot is clicked
+		dispatch('slotClick', slot);
 	}
 </script>
 
@@ -109,17 +109,6 @@
 </div>
 
 <style>
-	.hypertac-grid.modal-view {
-		gap: 0.2rem;
-	}
-	.hypertac-slot.modal-view {
-		font-size: 0.35rem;
-		padding: 0;
-		min-width: 18px;
-		min-height: 18px;
-		max-width: 28px;
-		max-height: 28px;
-	}
 	.hypertac-slot.used {
 		background-color: var(--color-slot-used);
 		border-color: var(--color-primary-green);
