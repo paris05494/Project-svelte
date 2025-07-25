@@ -13,6 +13,7 @@
 	let statusPanelCollapsed: boolean = true;
 	let showHypertacFullScreen: boolean = false;
 	let selectedSlot: IHypertacSlot | null = null;
+
 	// Control body overflow when modal is open
 	$: {
 		if (typeof document !== 'undefined') {
@@ -23,6 +24,7 @@
 			}
 		}
 	}
+
 	function openFullScreenHypertacView() {
 		if ($appStore.visualizationData?.hypertacSlots.length) {
 			showHypertacFullScreen = true;
@@ -35,6 +37,7 @@
 			appStore.updateStatus('Failed to open full-screen view: No data available.');
 		}
 	}
+
 	function closeFullScreenHypertacView() {
 		showHypertacFullScreen = false;
 		appStore.updateStatus('Full-screen Hypertac view closed.');
@@ -48,6 +51,7 @@
 	function closeSlotDetailPopup() {
 		selectedSlot = null;
 	}
+	
 </script>
 
 <div class="flex min-h-[calc(100vh-120px)] flex-col p-2 md:grid md:grid-cols-12 md:gap-2">
@@ -67,17 +71,22 @@
 	<div class="mb-4 flex flex-col gap-2 md:col-span-9 md:mb-0">
 		<div class="panel flex flex-grow-[2] flex-col">
 			<div class="mb-4 flex items-center justify-between">
-				<h2 class="text-2xl font-bold text-[var(--color-primary-green)]">HIL Hypertac</h2>
+				<h2 class="background-topic text-2xl font-bold">HIL Hypertac</h2>
 				<Button
 					onclick={openFullScreenHypertacView}
-					disabled={!$appStore.visualizationData?.hypertacSlots.length || $appStore.isLoading}
-					class="border border-gray-300 p-1.5 hover:bg-gray-100"
+					disabled={false}
+					class="border border-gray-300 p-1.5 rounded-2xl hover:bg-gray-100"
 					size="sm"
 				>
 					<img src={expandLogo} alt="Expand Logo" class="h-5 w-5" />
 				</Button>
+				<Button onclick={() => showHypertacFullScreen = true}
+					class="border border-gray-300 p-1.5 rounded-2xl hover:bg-gray-100"
+					>
+					Test Modal
+				</Button>
 			</div>
-			<div class="scrollable-content max-h-[calc(100vh - 120px)] relative flex-grow overflow-y-auto">
+			<div class="scrollable-content max-h-85 relative flex-grow overflow-y-auto">
 				<HypertacVisualizer
 					visualizationData={$appStore.visualizationData}
 					isMainView={true}
