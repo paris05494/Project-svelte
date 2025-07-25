@@ -27,10 +27,10 @@
 		on:click={handleClickOutside}
 		on:keydown={handleKeyDown}
 	>
-		<div class="modal-content panel flex flex-col">
+		<div class="modal-content flex flex-col w-[70vw] h-[45vw]">
 			<div class="mb-4 flex items-center justify-between">
-				<h3 class="text-2xl font-bold text-[var(--color-primary-green)]">
-					Full-Screen Hypertac View
+				<h3 class="background-topic text-2xl font-bold ">
+					HIL Hypertac
 				</h3>
 				<button
 					on:click={onClose}
@@ -54,7 +54,7 @@
 				</button>
 			</div>
 
-			<div class="custom-scrollbar flex-grow overflow-y-auto">
+			<div class="scrollable-content flex-grow overflow-y-auto">
 				{#if $appStore.isLoading}
 					<div class="flex h-full items-center justify-center">
 						<p class="text-lg text-gray-500">Loading Hypertac data...</p>
@@ -90,9 +90,6 @@
 		border-radius: 0.5rem;
 		padding: 1.5rem;
 		box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-		max-width: 90%;
-		max-height: 90%;
-		width: auto;
-		height: auto;
+		
 	}
 </style>
