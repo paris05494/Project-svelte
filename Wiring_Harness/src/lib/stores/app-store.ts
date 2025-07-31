@@ -1,63 +1,49 @@
 import { writable } from 'svelte/store';
-import type { IHypertacVisualizationData } from '../model/Hypertac';
-
-interface AppState {
+import type { IHypertacVisualizationData, IHypertacSlot } from '$lib/model/Hypertac';
+interface AppStore {
     isLoading: boolean;
     error: string | null;
-    statusMessages: string[];
+    status: string;
     visualizationData: IHypertacVisualizationData | null;
+    openSlotDetails: Set<string>;
     currentFileName: string | null;
 }
-
-const initialState: AppState = {
+const initialStore: AppStore = {
     isLoading: false,
     error: null,
-    statusMessages: ['Welcome! Please upload an Excel file.'],
+    status: 'Ready to upload Excel file.',
     visualizationData: null,
+    openSlotDetails: new Set<string>(),
     currentFileName: null,
 };
-
-const { subscribe, set, update } = writable<AppState>(initialState);
-
-const appStore = {
+const { subscribe, set, update } = writable<AppStore>(initialStore);
+export const appStore = {
     subscribe,
-    /**
-     * กำหนดสถานะการโหลดของแอปพลิเคชัน
-     * @param loading เป็นจริงหากแอปกำลังโหลด เป็นเท็จในกรณีอื่น
-     */
-    setLoading: (loading: boolean) => update(state => ({ ...state, isLoading: loading, error: loading ? null : state.error })),
-    /**
-     * กำหนดข้อความแสดงข้อผิดพลาดสำหรับแอปพลิเคชัน
-     * @param errorMessage สตริงข้อความแสดงข้อผิดพลาด หรือ null เพื่อล้าง
-     */
-    setError: (errorMessage: string | null) => update(state => ({ ...state, error: errorMessage, isLoading: false, statusMessages: [...state.statusMessages, `Error: ${errorMessage}`] })),
-    /**
-     * เพิ่มข้อความสถานะใหม่ไปยังแผงสถานะ
-     * @param message ข้อความสถานะที่จะเพิ่ม
-     */
-    updateStatus: (message: string) => update(state => ({ ...state, statusMessages: [...state.statusMessages, message].slice(-10)})), // เก็บข้อความ 10 ข้อความล่าสุด
-
-    /**
-     * กำหนดข้อมูลการแสดงผล Hypertac หลัก ซึ่งจะแทนที่ข้อมูลที่มีอยู่
-     * @param newData ข้อมูลการแสดงผลใหม่ หรือ null เพื่อล้าง
-     * @param fileName ชื่อไฟล์ที่สร้างข้อมูลนั้น
-     */
-    setVisualizationData: (newData: IHypertacVisualizationData | null, fileName: string | null) => {
-        update(state => {
-            if (newData) {
-                return {
-                    ...state,
-                    visualizationData: newData, // แทนที่ข้อมูลที่มีอยู่ทั้งหมด
-                    currentFileName: fileName,
-                    error: null, // ล้างข้อผิดพลาดเมื่อโหลดข้อมูลสำเร็จ
-                };
+    setLoading: (loading: boolean) => update(store => ({ ...store, isLoading: loading })),
+    setError: (error: string | null) => update(store => ({ ...store, error: error })),
+    updateStatus: (status: string) => update(store => ({ ...store, status: status })),
+    setVisualizationData: (data: IHypertacVisualizationData | null, fileName: string | null) => update(store => ({ ...store, visualizationData: data, currentFileName: fileName, error: null })),
+    
+    toggleSlotDetail: (slotId: string) => {
+        update(store => {
+            const newSet = new Set(store.openSlotDetails);
+            if (newSet.has(slotId)) {
+                newSet.delete(slotId);
             } else {
-                // หาก newData เป็น null (เช่น เมื่อล้างไฟล์) ให้รีเซ็ตเป็นสถานะเริ่มต้น
-                return { ...initialState, statusMessages: ['File selection cleared.'] };
+                newSet.add(slotId);
             }
+            return { ...store, openSlotDetails: newSet };
         });
     },
-    reset: () => set(initialState)
+    closeSlotDetail: (slotId: string) => {
+        update(store => {
+            const newSet = new Set(store.openSlotDetails);
+            newSet.delete(slotId);
+            return { ...store, openSlotDetails: newSet };
+        });
+    },
+    closeAllSlotDetails: () => {
+        update(store => ({ ...store, openSlotDetails: new Set<string>() }));
+    },
+    reset: () => set(initialStore)
 };
-
-export { appStore };
