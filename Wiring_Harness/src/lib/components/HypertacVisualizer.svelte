@@ -3,6 +3,7 @@
 	import type { IHypertacSlot, IHypertacVisualizationData } from '../model/Hypertac';
 	import { config as backendConfig } from '../../backend_config';
 	import { createEventDispatcher } from 'svelte';
+	import HypertacSlotDetailModal from '$lib/hypertac/Modal/HypertacSlotDetailModal.svelte';
 
 	const dispatch = createEventDispatcher();
 	export let isMainView: boolean;
@@ -47,6 +48,8 @@
 						ecuName: null,
 						ecuPin: null,
 						physicalHypertacId: null,
+						hilName: null,
+						hilPin: null,
 						isReused: false
 					});
 				}
@@ -60,9 +63,26 @@
 		});
 	})();
 	$: HYPERTAC_ROWS = Math.ceil(displaySlots.length / HYPERTAC_COLS);
+	//function onSlotClick(slot: IHypertacSlot) {
+	//	dispatch('slotClick', slot);
+	//}
+
+	let selectedSlots: IHypertacSlot[] = [];
+
 	function onSlotClick(slot: IHypertacSlot) {
-		dispatch('slotClick', slot);
+		if (!selectedSlots.find((s) => s.id === slot.id)) {
+			selectedSlots = [...selectedSlots, slot];
+		}
 	}
+	function toggleSlotDetail(slot: IHypertacSlot) {
+    const exists = selectedSlots.find((s) => s.id === slot.id);
+    if (exists) {
+        selectedSlots = selectedSlots.filter((s) => s.id !== slot.id);
+    } else {
+        selectedSlots = [...selectedSlots, slot];
+    }
+}
+
 </script>
 
 <div class="h-full w-full">
@@ -75,31 +95,41 @@
 			<p class="text-lg text-red-600">Error: {$appStore.error}</p>
 		</div>
 	{:else}
-		<div class="h-full w-full p-2 ">
+		<div class="h-full w-full p-2">
 			<div
 				class="hypertac-grid w-full {isModalView ? 'modal-view' : ''}"
 				style="--hypertac-rows: {HYPERTAC_ROWS}; --hypertac-cols: {HYPERTAC_COLS};"
 			>
 				{#each displaySlots as slot (slot.id)}
-					<div
-						class="hypertac-slot {slot.isUsed ? 'used' : 'empty'} {slot.isReused
-							? 'reused'
-							: ''} {isModalView ? 'modal-view' : ''}"
-						title={slot.isUsed
-							? `Signal: ${slot.signalName || 'N/A'}\nECU: ${slot.ecuName || 'N/A'}${slot.ecuPin ? ` (Pin: ${slot.ecuPin})` : ''}\nHypertac Slot: ${slot.id}${slot.physicalHypertacId ? ` (Physical: ${slot.physicalHypertacId})` : ''}\n${slot.isReused ? ' (REUSED)' : ''}`
-							: `Empty Slot: ${slot.id}`}
-						role="button"
-						tabindex="0"
-						on:click={() => onSlotClick(slot)}
-						on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && onSlotClick(slot)}
-					>
-						{#if slot.isUsed}
-							<span class="truncate">
-								{isModalView ? slot.physicalHypertacId || slot.id : slot.signalName}
-							</span>
-							{#if slot.isReused}
-								<span class="ml-1 text-[var(--color-slot-reused-text)]"> (R)</span>
+					<div class="mb-2 flex items-start gap-2">
+						<div
+							class="hypertac-slot {slot.isUsed ? 'used' : 'empty'} {slot.isReused
+								? 'reused'
+								: ''} {isModalView ? 'modal-view' : ''}"
+							title={slot.isUsed
+								? `Signal: ${slot.signalName || 'N/A'}\nECU: ${slot.ecuName || 'N/A'}${slot.ecuPin ? ` (Pin: ${slot.ecuPin})` : ''}\nHypertac Slot: ${slot.id}${slot.physicalHypertacId ? ` (Physical: ${slot.physicalHypertacId})` : ''}\n${slot.isReused ? ' (REUSED)' : ''}`
+								: `Empty Slot: ${slot.id}`}
+							role="button"
+							tabindex="0"
+							on:click={() => toggleSlotDetail(slot)}
+							on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleSlotDetail(slot)}
+						>
+							{#if slot.isUsed}
+								<span class="truncate">
+									{isModalView ? slot.physicalHypertacId || slot.id : slot.signalName}
+								</span>
+								{#if slot.isReused}
+									<span class="ml-1 text-[var(--color-slot-reused-text)]"> (R)</span>
+								{/if}
 							{/if}
+						</div>
+						{#if selectedSlots.find((s) => s.id === slot.id)}
+							<HypertacSlotDetailModal
+								slotData={slot}
+								onClose={() => {
+									selectedSlots = selectedSlots.filter((s) => s.id !== slot.id);
+								}}
+							/>
 						{/if}
 					</div>
 				{/each}
