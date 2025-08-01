@@ -18,6 +18,8 @@
     --color-slot-empty-text: #6b7280;
     --color-slot-reused: #fca5a5;
     --color-slot-reused-text: #7f1d1d;
+    --hypertac-cols: 5;
+    --hypertac-rows: 18;
 }
 
 body {
@@ -80,6 +82,7 @@ body {
     height: auto;
     padding-right: 0.5rem;
     /* Add padding for scrollbar visibility */
+    position: relative;
 }
 
 /* Hypertac slot - Default (for main view) */
@@ -148,13 +151,13 @@ body {
     /* Even smaller font for modal view */
     padding: 0.15rem;
     /* Reduced padding for modal view */
-    min-width: 70px;
+    min-width: 50px;
     /* Smaller min width for modal circles */
-    min-height: 70px;
+    min-height: 50px;
     /* Smaller min height for modal circles */
-    max-width: 90px;
+    max-width: 70px;
     /* Smaller max width for modal circles */
-    max-height: 90px;
+    max-height: 70px;
     /* Smaller max height for modal circles */
 }
 
