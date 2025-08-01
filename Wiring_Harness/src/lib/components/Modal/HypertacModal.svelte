@@ -27,11 +27,9 @@
 		on:click={handleClickOutside}
 		on:keydown={handleKeyDown}
 	>
-		<div class="modal-content flex flex-col w-[70vw] h-[45vw]">
+		<div class="modal-content flex h-[45vw] w-[70vw] flex-col">
 			<div class="mb-4 flex items-center justify-between">
-				<h3 class="background-topic text-2xl font-bold ">
-					HIL Hypertac
-				</h3>
+				<h3 class="background-topic text-2xl font-bold">HIL Hypertac</h3>
 				<button
 					on:click={onClose}
 					class="text-gray-500 hover:text-gray-700"
@@ -90,6 +88,5 @@
 		border-radius: 0.5rem;
 		padding: 1.5rem;
 		box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-		
 	}
 </style>
